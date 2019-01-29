@@ -9,7 +9,10 @@
 | Server | SQL & C++ |
 
 Architechture: Client-Server
-Color Scheme: ['Classical' by DavidGav](https://www.colourlovers.com/palette/2839222/Classical)
+
+Color Scheme: ['Classical' by DavidGav](
+https://www.colourlovers.com/palette/2839222/Classical)
+
 Initial Features:
 <ul>
         <li>Notification sharing between two devices</li>

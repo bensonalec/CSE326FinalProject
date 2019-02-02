@@ -9,5 +9,9 @@ Compilation Instructions:
 <li><code>make</code></li>
 </ol>
 </dd>
+<dt>Windows</dt>
+<dd></dd>
+<dt>MacOS</dt>
+<dd></dd>
 </dl>
 

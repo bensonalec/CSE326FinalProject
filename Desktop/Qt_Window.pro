@@ -1,9 +1,6 @@
 TEMPLATE = app
 TARGET = Qt_Window
 
-QT = core gui
+QT = core gui widgets
 
-greaterThan(QT_MAJOR_VERISON, 4): QT += widgets
-
-HEADERS += 
 SOURCES += main.cpp

@@ -1,4 +1,4 @@
-CSE 326 Desktop Application
+# CSE 326 Desktop Application
 
 Compilation Instructions:
 <dl>

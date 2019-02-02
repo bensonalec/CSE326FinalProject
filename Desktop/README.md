@@ -5,8 +5,8 @@ Compilation Instructions:
 <dt>Linux</dt>
 <dd>
 <ol>
-<li>`qmake`</li>
-<li>`make`</li>
+<li><code>qmake</code></li>
+<li><code>make</code></li>
 </ol>
 </dd>
 </dl>

@@ -10,8 +10,22 @@ Compilation Instructions:
 </ol>
 </dd>
 <dt>Windows</dt>
-<dd></dd>
+<dd>
+  <details>
+    <summary>If cross-compiling from Linux to Windows</summary>
+    <ol>
+      <li>TBA</li>
+    </ol>
+  </details>
+</dd>
 <dt>MacOS</dt>
-<dd></dd>
+<dd>
+  <details>
+    <summary>If cross-compiling from Linux to MacOS</summary>
+    <ol>
+      <li>TBA</li>
+    </ol>
+  </details>
+</dd>
 </dl>
 

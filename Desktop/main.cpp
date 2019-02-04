@@ -1,9 +1,12 @@
-#include <QtWidgets/QApplication>
+#include <QtWidgets>
 
 int main(int argc, char *argv[])
 {
 
-        QApplication appl(argc, argv);
+    QApplication app(argc, argv);
 
-        return appl.exec();
+    QMainWindow mainWin;
+    mainWin.setCentralWidget(new QPlainTextEdit);
+    mainWin.show();
+    return app.exec();
 }

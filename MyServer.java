@@ -10,21 +10,24 @@ import java.net.ServerSocket;
 
 
 public class MyServer {
-    private static Socket ss;
+    private static ServerSocket ss;
     private static Socket s;
     private static BufferedReader br;
     private static InputStreamReader isr;
     private static String message = "";
-
     public static void main(String[] args) {
         try {
             while(true) {
-                ss = new Socket("67.0.195.29",5000);
+                ss = new ServerSocket(5000);
                 s = ss.accept();
 
                 isr = new InputStreamReader(s.getInputStream());
                 br = new BufferedReader(isr);
+                //PrintWriter toout = new PrintWriter(s.getOutputStream());
+                //toout.write("Received!");
                 message = br.readLine();
+                //toout.flush();
+                //toout.close();
                 System.out.println(message);
                 isr.close();
                 br.close();

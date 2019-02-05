@@ -3,5 +3,5 @@ TARGET = Qt_Window
 
 QT = core gui widgets
 
-HEADERS += 
-SOURCES += main.cpp 
+HEADERS += window.h
+SOURCES += window.cpp main.cpp

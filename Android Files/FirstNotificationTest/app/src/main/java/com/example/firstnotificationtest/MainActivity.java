@@ -10,7 +10,10 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -22,6 +25,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.Buffer;
+import java.util.Stack;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 
@@ -29,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     int i = 0;
     TextView title,text,notType,iter;
+    String username = "bensonalec";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
         text = (TextView) this.findViewById(R.id.textLoc);
         notType = (TextView) this.findViewById(R.id.typeContainer);
         iter = (TextView) this.findViewById(R.id.iter);
+        title.setText(Build.MODEL);
+
     }
     notificationN[] nots = new notificationN[15];
     public class ImageChangeBroadcastReceiver extends BroadcastReceiver {
@@ -56,21 +63,12 @@ public class MainActivity extends AppCompatActivity {
             test.intent = intent;
             test.f = i;
             test.start();
-            try {
-                test.join();
-            } catch (InterruptedException e) {e.printStackTrace();
-
-            }
-            iter.setText(Integer.toString(i));
-            text.setText(nots[i].text.toString());
-            notType.setText(nots[i].type);
-            title.setText(nots[i].title);
             i++;
             i = i % 15;
 
         }
     }
-
+    public Stack<notificationN> stk = new Stack<notificationN>();
     public class HelloThread extends Thread {
         Intent intent = null;
         int f = 0;
@@ -79,15 +77,17 @@ public class MainActivity extends AppCompatActivity {
                 String tit = intent.getStringExtra("Notification Title");
                 CharSequence tex = intent.getCharSequenceExtra("Notification Text");
                 String typ = intent.getStringExtra("Notification Type");
-                nots[f] = new notificationN();
-                nots[f].title = tit;
-                nots[f].text = tex;
-                nots[f].type = typ;
-                //text.setText(nots[i].text.toString());
-                //notType.setText(nots[i].type);
-                //title.setText(Integer.toString(i));
+
+                /*
+                notificationN notTemp = new notificationN();
+                notTemp.title = tit;
+                notTemp.text = tex;
+                notTemp.type = typ;
+                stk.push(notTemp);
+                */
+
                 myTask mt = new myTask();
-                mt.message = nots[f].text.toString();
+                mt.message = Build.MODEL+":"+username + "\t" + typ + "\t" + tit + "\t" + tex.toString();
                 mt.execute();
             }
         }
@@ -100,22 +100,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     class myTask extends AsyncTask<Void,Void,Void> {
-        String message = "";
+        String message = "Notification not transmitted properly...";
         @Override
         protected Void doInBackground(Void... Params) {
             try {
                 Socket s = new Socket("67.0.195.29", 5000);
 
                 PrintWriter output = new PrintWriter(s.getOutputStream());
-
                 output.write(message);
-
                 output.flush();
                 output.close();
-//                BufferedReader toRec = new BufferedReader(new InputStreamReader(s.getInputStream()));
-                //String response = toRec.readLine();
-                //text.setText(response);
-//                toRec.close();
+
                 s.close();
 
             } catch (UnknownHostException e) {

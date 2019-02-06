@@ -1,30 +1,37 @@
 #include <iostream>
+#include <QObject>
 #include <QtWidgets>
 
-class window
+class window : public QObject
 {
+
+        Q_OBJECT
+
         public:
                 window();
 
         private:
                 void setupMenuBar();
                 void setupMenuEntries();
+                void setupTabBar();
+                void setupCenter();
+                
+                void openSettings();
+                void openFeed();
+
+                void initSettings();
+                void initFeed();
+
+                static void quit();
 
                 QMainWindow coreWin;
                 QMenuBar menuBar;
                 QMenu *menuEntries;
+                QTabWidget center;
 
-};
+                QWidget Settings;
+                QWidget Feed;
 
-class terminate {
-        public:
-                static void quit();
-};
-
-class settings {
-        public:
-                static void toggle();
-                static QMessageBox settingsWin;        
-
-        private:
+        private slots:
+                void closeTab(int i);
 };

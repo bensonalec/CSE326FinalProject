@@ -22,7 +22,7 @@ class window : public QObject
                 void initSettings();
                 void initFeed();
 
-                static void quit();
+                void quit();
 
                 QMainWindow coreWin;
                 QMenuBar menuBar;

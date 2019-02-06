@@ -4,6 +4,7 @@
 
 #define MENU_ITEMS 1
 #define MAIN_TABS 3
+#define SETTING_ITEMS 4
 
 #include "window.h"
 
@@ -34,15 +35,14 @@ void window::setupMenuEntries() {
 
         auto openSettings_ = [this]() {this->openSettings();};
         auto openFeed_ = [this]() {this->openFeed();};
+        auto quit_ = [this]() {this->quit();};
 
         File.addAction("Feed", openFeed_, Qt::ALT + Qt::Key_F);
 
         File.addAction("Settings", openSettings_, Qt::ALT + Qt::Key_S);
 
-        //File.addAction("Settings", this, &window::openSettings, Qt::ALT + Qt::Key_S);
-
         // Exit shortcut
-        File.addAction("Quit", window::quit, Qt::ALT + Qt::Key_F4);
+        File.addAction("Quit", quit_, Qt::ALT + Qt::Key_F4);
 
 }
 
@@ -55,13 +55,22 @@ void window::setupCenter(){
 
         openFeed();
 
+        initFeed();
+
         QObject::connect(&center, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
         coreWin.setCentralWidget(&center);
 }
 
 void window::quit() {
-        exit(0);
+        Settings.~QWidget();
+        Feed.~QWidget();
+        for (int i = 0; i < MENU_ITEMS; i++){
+                menuEntries[i].~QMenu();
+        }
+        center.~QTabWidget();
+        menuBar.~QMenuBar();
+        coreWin.~QMainWindow();
 }
 
 void window::openSettings() {
@@ -82,9 +91,9 @@ void window::closeTab(int i) {
 }
 
 void window::initSettings() {
-
+        // TBA when settings are declared
 }
 
 void window::initFeed() {
-
+        // TBA when packets be sending
 }

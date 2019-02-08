@@ -5,12 +5,13 @@
 
 
 
-int main(int argc, char **argv){
+Reciever::Reciever{
 
     QUdpSocket socket = new QUdpSocket();
     socket->bind(QHostAddress::Localhost, 5000);
 
-    connect();
+    connect(udpSocket, SIGNAL(readyRead()),
+            this, SLOT(processData()));
 
     while(true){
         if(socket->hasPendingDatagrams){
@@ -22,9 +23,7 @@ int main(int argc, char **argv){
         }
 
     }
-
-
-
-
-
+}
+void Reciever::processData(){
+    //here we can read that data in.
 }

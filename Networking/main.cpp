@@ -1,13 +1,16 @@
+#include <QCoreApplication>
+#include "listen.h"
 
+int main(int argc, char *argv[])
+{
+    QCoreApplication a(argc, argv);
+    
+   // MyUDP client;
+    
+    //client.HelloUDP();
 
-int main(char **argv, int argc){
-
-
-
-
-
-
-
-
-    return 0;
+    Listen client;
+    
+    return a.exec();
+    //return 0;
 }

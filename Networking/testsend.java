@@ -5,13 +5,14 @@ import java.io.PrintWriter;
 public class testsend {
     public static void main(String[] args){
         try{
-            Socket a = new Socket("localhost", 5000);
+            Socket a = new Socket("localhost", 5123);
             PrintWriter b =  new PrintWriter(a.getOutputStream(), true);
             b.write("Hello");
         }
         catch (Exception e){
             System.out.println("error");
         }
+        a.close();
 
     } 
 

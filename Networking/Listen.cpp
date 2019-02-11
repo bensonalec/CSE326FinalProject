@@ -1,6 +1,7 @@
 // listen.cpp
 
 #include "listen.h"
+#include<iostream>
 
 Listen::Listen(QObject *parent) :
     QObject(parent)
@@ -12,7 +13,7 @@ Listen::Listen(QObject *parent) :
     // to bind to an address and port using bind()
     // bool QAbstractSocket::bind(const QHostAddress & address, 
     //     quint16 port = 0, BindMode mode = DefaultForPlatform)
-    socket->bind(QHostAddress::LocalHost, 5000);
+    socket->bind(QHostAddress::LocalHost, 5123);
     
     connect(socket, SIGNAL(listening()), this, SLOT(listening()));
 }
@@ -32,9 +33,8 @@ void Listen::listening()
     // The sender's host address and port is stored in *address and *port 
     // (unless the pointers are 0).
     
-    socket->readDatagram(buffer.data(), buffer.size(), &sender;, &senderPort;);
-    
-    cout << "Message from: " << sender.toString(); 
-    cout << "Message port: " << senderPort;
-    cout << "Message: " << buffer;
+    socket->readDatagram(buffer.data(), buffer.size(), &sender, &senderPort);
+    //std::cout << "Message from: " << sender.toString() << "\n"; 
+    //std::cout << "Message port: " << senderPort.toString() << "\n";
+    std::cout << "Message: " << buffer.data() << "\n";
 }

@@ -2,6 +2,7 @@
 
 #include "listen.h"
 #include<iostream>
+#include <QUdpSocket>
 
 Listen::Listen(QObject *parent) :
     QObject(parent)
@@ -13,8 +14,8 @@ Listen::Listen(QObject *parent) :
     // to bind to an address and port using bind()
     // bool QAbstractSocket::bind(const QHostAddress & address, 
     //     quint16 port = 0, BindMode mode = DefaultForPlatform)
-    socket->bind(QHostAddress::LocalHost, 5123);
-    
+   // socket->bind(QHostAddress::LocalHost, 6000);
+    socket->bind(QHostAddress::LocalHost, 6000);
     connect(socket, SIGNAL(readyRead()), this, SLOT(listening()));
 }
 

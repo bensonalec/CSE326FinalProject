@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 public class testsend {
     public static void main(String[] args){
         try{
-            Socket a = new Socket("localhost", 5123);
+            Socket a = new Socket("localhost", 6000);
             PrintWriter b =  new PrintWriter(a.getOutputStream(), true);
             b.write("Hello");
             a.close();

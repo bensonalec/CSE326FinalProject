@@ -15,7 +15,7 @@ Listen::Listen(QObject *parent) :
     //     quint16 port = 0, BindMode mode = DefaultForPlatform)
     socket->bind(QHostAddress::LocalHost, 5123);
     
-    connect(socket, SIGNAL(listening()), this, SLOT(listening()));
+    connect(socket, SIGNAL(readyRead()), this, SLOT(listening()));
 }
 
 void Listen::listening()

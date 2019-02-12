@@ -8,11 +8,13 @@ public class testsend {
             Socket a = new Socket("localhost", 5123);
             PrintWriter b =  new PrintWriter(a.getOutputStream(), true);
             b.write("Hello");
+            a.close();
         }
         catch (Exception e){
-            System.out.println("error");
+            e.printStackTrace();
+            //System.out.println("error");
         }
-        a.close();
+
 
     } 
 

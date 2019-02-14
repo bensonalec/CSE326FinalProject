@@ -8,13 +8,14 @@ class window : public QObject
         Q_OBJECT
 
         public:
-                window();
+                window(QApplication *par);
 
         private:
                 void setupMenuBar();
                 void setupMenuEntries();
                 void setupTabBar();
                 void setupCenter();
+                void setupTrayIcon(QApplication *par);
                 
                 void openSettings();
                 void openFeed();
@@ -32,6 +33,13 @@ class window : public QObject
                 QWidget Settings;
                 QWidget Feed;
 
+                QSystemTrayIcon *sysIcon;
+                QIcon *trayIcon;
+
+                QGridLayout feedLayout;
+                QGridLayout settingsLayout;
+
         private slots:
                 void closeTab(int i);
+                void sendNotif();
 };

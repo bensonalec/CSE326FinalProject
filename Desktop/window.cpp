@@ -8,7 +8,9 @@
 
 #include "window.h"
 
-window::window() {
+window::window(QApplication *par) {
+
+        setupTrayIcon(par);
 
         setupMenuEntries();
         setupMenuBar();
@@ -63,14 +65,39 @@ void window::setupCenter(){
 }
 
 void window::quit() {
-        Settings.~QWidget();
-        Feed.~QWidget();
-        for (int i = 0; i < MENU_ITEMS; i++){
-                menuEntries[i].~QMenu();
+
+
+        if (&settingsLayout) {
+                settingsLayout.~QGridLayout();
         }
-        center.~QTabWidget();
-        menuBar.~QMenuBar();
-        coreWin.~QMainWindow();
+        if (&feedLayout) {
+                feedLayout.~QGridLayout();
+        }
+        if (&sysIcon) {
+                sysIcon->~QSystemTrayIcon();
+        }
+        if (&Feed) {
+                Feed.~QWidget();
+        }
+        if (&Settings) {
+                Settings.~QWidget();
+        }
+        if (&center) {
+                center.~QWidget();
+        }
+        if (&menuEntries) {
+                for (int i = 0; i < MENU_ITEMS; i++)
+                        menuEntries[i].~QMenu();
+        }
+        if (&menuBar) {
+                menuBar.~QMenuBar();
+        }
+        if (&coreWin) {
+                coreWin.~QMainWindow();
+        }
+        
+
+        exit(0);
 }
 
 void window::openSettings() {
@@ -96,4 +123,26 @@ void window::initSettings() {
 
 void window::initFeed() {
         // TBA when packets be sending
+
+        QPushButton *qb = new QPushButton("Test");
+
+        QObject::connect(qb, SIGNAL(clicked()), this, SLOT(sendNotif()));
+
+        feedLayout.addWidget(qb, 0, 0, Qt::AlignLeft);
+
+        Feed.setLayout(&feedLayout);
+
+}
+
+void window::setupTrayIcon(QApplication* par) {
+        trayIcon = new QIcon("warning.svg");
+        sysIcon = new QSystemTrayIcon(*trayIcon, par);
+        sysIcon->show();
+}
+
+void window::sendNotif(){
+
+        if (sysIcon)
+                sysIcon->showMessage("Test Notification", "This is a test to see if the notifications work");
+
 }

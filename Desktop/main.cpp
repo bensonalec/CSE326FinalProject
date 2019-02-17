@@ -8,5 +8,7 @@ int main(int argc, char *argv[])
 
         window *mainWin = new window(&app);
 
+        mainWin->show();
+
         return app.exec();
 }

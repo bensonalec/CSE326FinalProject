@@ -1,14 +1,19 @@
-#include <iostream>
-#include <QObject>
-#include <QtWidgets>
-
 #define MENU_ITEMS 1
 #define MAIN_TABS 3
 #define SETTING_ITEMS 4
+#define SERVER_PORT 5454
 
 #include "window.h"
 
 window::window(QApplication *par) {
+
+        sock = new QUdpSocket();
+
+        sock = new QUdpSocket(this);
+        sock->bind(QHostAddress::LocalHost, SERVER_PORT);
+        QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readNotif()));
+
+        list = new notifList();
 
         setupTrayIcon(par);
 
@@ -17,7 +22,6 @@ window::window(QApplication *par) {
         setupCenter();
 
         coreWin.setFixedSize(400, 400);
-        coreWin.show();
 }
 
 void window::setupMenuBar(){
@@ -44,7 +48,7 @@ void window::setupMenuEntries() {
         File.addAction("Settings", openSettings_, Qt::ALT + Qt::Key_S);
 
         // Exit shortcut
-        File.addAction("Quit", quit_, Qt::ALT + Qt::Key_F4);
+        File.addAction("Quit", quit_, Qt::ALT + Qt::Key_Q);
 
 }
 
@@ -142,7 +146,80 @@ void window::setupTrayIcon(QApplication* par) {
 
 void window::sendNotif(){
 
-        if (sysIcon)
-                sysIcon->showMessage("Test Notification", "This is a test to see if the notifications work");
+        list = new notifList();
+
+        list->show();        
+}
+
+void window::show(){
+        coreWin.show();
+}
+
+void window::readNotif(){
+
+}
+
+notifList::notifList(){
+        ntfLst = new std::list<notif*>();
+        
+        QString tit = "Test";
+        QString msg = "Body";
+
+        n = new notif(&tit, &msg);
+
+        ntfLst->push_front(n);
+
+        QRect rec = QApplication::desktop()->screenGeometry();
+
+        switch (curPos){
+                topLeft:
+                pos = new QPoint(rec.width()*.1, rec.height()*.1);
+                break;
+                topRight:
+                pos = new QPoint(rec.width()*.9, rec.height()*.1);
+                break;
+                botLeft:
+                pos = new QPoint(rec.width()*.1, rec.height()*.9);
+                break;
+                botRight:
+                default:
+                pos = new QPoint(rec.width()*.9, rec.height()*.9);
+        }
+
+}
+
+void notifList::show(){
+        for (notif *n : *ntfLst){
+                n->setSize(200, 200);
+                n->setPosition(pos);
+                n->show();
+        }
+}
+notif::notif() {
+        win = new QTextEdit(NULL);
+        win->setWindowTitle("This is a test window");
+        win->setReadOnly(true);
+        win->setText("This is a test notification body");
+}
+
+notif::notif(QString *title, QString *msg) {
+        win = new QTextEdit(NULL);
+        win->setWindowTitle(*title);
+        win->setReadOnly(true);
+        win->setText(*msg);
+}
+
+void notif::show(){
+        win->show();
+}
+
+void notif::setPosition(QPoint *p){
+        win->move(p->x(), p->y());
+}
+
+void notif::setSize(int x, int y){
+        win->setMinimumSize(x, y);
+        win->setMaximumSize(x, y);
+        //win->resize(x, y);
 
 }

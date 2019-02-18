@@ -65,7 +65,8 @@ class window : public QObject
                 void setupTabBar();
                 void setupCenter();
                 void setupTrayIcon(QApplication *par);
-                
+                void setupConnection();
+
                 void openSettings();
                 void openFeed();
 

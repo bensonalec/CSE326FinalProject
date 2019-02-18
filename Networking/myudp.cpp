@@ -26,7 +26,7 @@ void MyUDP::HelloUDP()
     // to the host address and at port.
     // qint64 QUdpSocket::writeDatagram(const QByteArray & datagram, 
     //                      const QHostAddress & host, quint16 port)
-    socket->writeDatagram(Data, QHostAddress::LocalHost, 1234);
+    socket->writeDatagram(Data, QHostAddress::LocalHost, 5000);
 }
 
 void MyUDP::readyRead()

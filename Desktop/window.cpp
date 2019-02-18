@@ -10,11 +10,10 @@ window::window(QApplication *par) {
         sock = new QUdpSocket();
 
         sock = new QUdpSocket(this);
-        sock->bind(QHostAddress::LocalHost, SERVER_PORT);
-        QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readNotif()));
 
         list = new notifList();
 
+        setupConnection();
         setupTrayIcon(par);
 
         setupMenuEntries();
@@ -156,6 +155,33 @@ void window::show(){
 }
 
 void window::readNotif(){
+
+}
+
+void window::setupConnection(){
+        sock->bind(QHostAddress::LocalHost, SERVER_PORT);
+        QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readNotif()));
+
+        QString addrStr = "75.161.255.35";
+
+        QHostAddress *addr;
+
+        if (addr = new QHostAddress(addrStr))
+                std::cout << "bound\n"; 
+        quint16 port = 5000;
+
+        char data[] = "bensonalec@Test\twhatever\n";
+
+        QByteArray *arr = new QByteArray(data, -1);
+
+        std::cout << data;
+        std::cout << addr << "\n";
+
+        sock->writeDatagram(*arr, *addr, port);
+
+        std::cout << data;
+
+        //sock->writeDatagram(data, sizeof(data), QHostAddress::LocalHost, port);
 
 }
 

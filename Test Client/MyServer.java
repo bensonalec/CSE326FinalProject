@@ -10,6 +10,10 @@ import java.net.ServerSocket;
 import java.io.File;
 import java.io.FileReader;
 import java.io.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+
 
 public class MyServer {
     private static ServerSocket ss;
@@ -21,15 +25,27 @@ public class MyServer {
         try {
             while(true) {
                 //accept connection from incoming notification
-                ss = new ServerSocket(5000);
+                    //ss = new ServerSocket(5000);
+                
+                DatagramSocket socket = new DatagramSocket(5000);
+                byte[] buf = new byte[256];
+                DatagramPacket packet = new DatagramPacket(buf, buf.length);
+                socket.receive(packet);
+                InetAddress address = packet.getAddress();
+                int port = packet.getPort();
+                packet = new DatagramPacket(buf, buf.length, address, port);
+                String received = new String(packet.getData(), 0, packet.getLength());
+                
+                /*
                 s = ss.accept();
                 //set up I/O on socket 
                 isr = new InputStreamReader(s.getInputStream());
                 br = new BufferedReader(isr);
                 //read incoming notification
                 message = br.readLine();
+                */
                 //Split the notification which is tab delimited
-                String[] notification = message.split("\t");
+                String[] notification = received.split("\t");
                 
                 //Check if the device is new, if it's new will register it in the DB, then will print "New Device Registered!"
                 if(!checkDevice(notification[0])) {
@@ -37,23 +53,15 @@ public class MyServer {
                 }
 
                 //Parses individual notifications by notification type
-                if(notification[1].equals("com.oneplus.screenshot")) {
-                    System.out.println("Screenshot: " + notification[2]);
-                } else if (notification[1].equals("com.snapchat.android")) {
-                    System.out.println("Snapchat received from " + notification[2]);
-                } else if (notification[1].equals("com.groupme.android")) {
-                    System.out.println("GroupMe message in group message \"" + notification[2] +"\": " + notification[3]);
-                } else if (notification[1].equals("com.textra")) {
-                    System.out.println("Text received from " + notification[2] + ": " + notification[3]);
-                }
-                else {
-                    System.out.println(message);
-                }
+                System.out.println(message);
                 //Closes all sockets and I/O
-                isr.close();
-                br.close();
-                ss.close();
-                s.close();
+                /*
+                    //isr.close();
+                    //br.close();
+                    //ss.close();
+                    //s.close();
+                */
+                socket.close();
             }
         } catch (IOException e) {
             

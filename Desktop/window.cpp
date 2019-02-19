@@ -1,15 +1,15 @@
 #define MENU_ITEMS 1
 #define MAIN_TABS 3
 #define SETTING_ITEMS 4
-#define SERVER_PORT 5454
+#define SERVER_PORT 5000
 
 #include "window.h"
 
 window::window(QApplication *par) {
 
-        sock = new QUdpSocket(this);
+        sockIn = new QUdpSocket(this);
+        sockOut = new QUdpSocket(this);
 
-        list = new notifList();
         setupConnection();
         setupTrayIcon(par);
 
@@ -142,9 +142,6 @@ void window::setupTrayIcon(QApplication* par) {
 
 void window::sendNotif(){
 
-        list = new notifList();
-
-        list->show();        
 }
 
 void window::show(){
@@ -152,72 +149,28 @@ void window::show(){
 }
 
 void window::readNotif(){
-
+        std::cout << "package recieved\n";
+        n = new notif();
 }
 
 void window::setupConnection(){
-        sock->bind(QHostAddress::LocalHost, SERVER_PORT);
-        QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readNotif()));
+        sockIn->bind(QHostAddress("172.56.13.239"), SERVER_PORT);
+        QObject::connect(sockIn, SIGNAL(readyRead()), this, SLOT(readNotif()));
 
         QString addrStr = "75.161.255.35";
 
-        QHostAddress *addr;
+        QNetworkDatagram gram;
 
-        if (addr = new QHostAddress(addrStr))
-                std::cout << "bound\n"; 
-        quint16 port = 5000;
+        gram.setData("bensonalec@Testint\twhatever\n");
+        gram.setDestination(QHostAddress(addrStr), (quint16) 5000);
 
-        char data[] = "bensonalec@Test\twhatever\n";
 
-        QByteArray *arr = new QByteArray(data, -1);
+        if (int i = sockOut->writeDatagram(gram))
+                std::cout << i << "\n";
 
-        std::cout << data;
-        std::cout << addr << "\n";
-
-        //sock->writeDatagram(*arr, *addr, port);
-
-        std::cout << data;
-
-        sock->writeDatagram(*arr, QHostAddress::LocalHost, 5000);
 
 }
 
-notifList::notifList(){
-        ntfLst = new std::list<notif*>();
-        
-        QString tit = "Test";
-        QString msg = "Body";
-
-        n = new notif(&tit, &msg);
-
-        ntfLst->push_front(n);
-
-        QRect rec = QApplication::desktop()->screenGeometry();
-
-        switch (curPos){
-                topLeft:
-                pos = new QPoint(rec.width()*.1, rec.height()*.1);
-                break;
-                topRight:
-                pos = new QPoint(rec.width()*.9, rec.height()*.1);
-                break;
-                botLeft:
-                pos = new QPoint(rec.width()*.1, rec.height()*.9);
-                break;
-                botRight:
-                default:
-                pos = new QPoint(rec.width()*.9, rec.height()*.9);
-        }
-
-}
-
-void notifList::show(){
-        for (notif *n : *ntfLst){
-                n->setSize(200, 200);
-                n->setPosition(pos);
-                n->show();
-        }
-}
 notif::notif() {
         win = new QTextEdit(NULL);
         win->setWindowTitle("This is a test window");

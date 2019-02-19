@@ -21,35 +21,6 @@ private:
 
 };
 
-class notifList : public QObject
-{
-
-        Q_OBJECT
-
-        public:
-                notifList();
-                void appendNotif();
-                void removeNotif(int i);
-                void hide();
-                void show();
-
-
-                enum screenPosition {
-                        topRight, topLeft, botRight, botLeft
-                };
-
-        private:
-                enum screenPosition curPos = botRight;
-                //std::vector<notif*> list;
-                std::list<notif*> *ntfLst;
-
-                QPoint *pos;
-                QPoint offset;
-
-                notif *n;
-
-};
-
 class window : public QObject
 {
 
@@ -89,9 +60,10 @@ class window : public QObject
                 QGridLayout feedLayout;
                 QGridLayout settingsLayout;
 
-                notifList *list;
+                notif *n;
 
-                QUdpSocket *sock;
+                QUdpSocket *sockOut;
+                QUdpSocket *sockIn;
 
         private slots:
                 void closeTab(int i);

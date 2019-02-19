@@ -7,12 +7,9 @@
 
 window::window(QApplication *par) {
 
-        sock = new QUdpSocket();
-
         sock = new QUdpSocket(this);
 
         list = new notifList();
-
         setupConnection();
         setupTrayIcon(par);
 
@@ -177,11 +174,11 @@ void window::setupConnection(){
         std::cout << data;
         std::cout << addr << "\n";
 
-        sock->writeDatagram(*arr, *addr, port);
+        //sock->writeDatagram(*arr, *addr, port);
 
         std::cout << data;
 
-        //sock->writeDatagram(data, sizeof(data), QHostAddress::LocalHost, port);
+        sock->writeDatagram(*arr, QHostAddress::LocalHost, 5000);
 
 }
 

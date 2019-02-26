@@ -7,9 +7,6 @@
 
 window::window(QApplication *par) {
 
-        sockIn = new QUdpSocket(this);
-        sockOut = new QUdpSocket(this);
-
         setupConnection();
         setupTrayIcon(par);
 
@@ -154,20 +151,12 @@ void window::readNotif(){
 }
 
 void window::setupConnection(){
-        sockIn->bind(QHostAddress("172.56.13.239"), SERVER_PORT);
-        QObject::connect(sockIn, SIGNAL(readyRead()), this, SLOT(readNotif()));
+        sock = new QTcpSocket();
+        QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readNotif()));
 
         QString addrStr = "75.161.255.35";
 
-        QNetworkDatagram gram;
-
-        gram.setData("bensonalec@Testint\twhatever\n");
-        gram.setDestination(QHostAddress(addrStr), (quint16) 5000);
-
-
-        if (int i = sockOut->writeDatagram(gram))
-                std::cout << i << "\n";
-
+        sock->connectToHost(QHostAddress("jerry.cs.nmt.edu"), SERVER_PORT, QIODevice::ReadWrite);
 
 }
 

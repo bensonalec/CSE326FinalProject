@@ -62,8 +62,7 @@ class window : public QObject
 
                 notif *n;
 
-                QUdpSocket *sockOut;
-                QUdpSocket *sockIn;
+                QTcpSocket *sock;
 
         private slots:
                 void closeTab(int i);

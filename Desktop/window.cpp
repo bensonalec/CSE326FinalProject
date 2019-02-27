@@ -156,11 +156,13 @@ void window::setupConnection(){
 
         QString addrStr = "75.161.255.35";
 
-        sock->connectToHost(QHostAddress("jerry.cs.nmt.edu"), SERVER_PORT, QIODevice::ReadWrite);
+        sock->connectToHost("jerry.cs.nmt.edu", SERVER_PORT, QIODevice::ReadWrite);
         if (sock->waitForConnected(5000)){
                 std::cout << "connected\n";
-        } else
+        } else{
                 std::cout << "unable to connect\n";
+                std::cout << sock->error() << "\n";
+        }
 
 }
 

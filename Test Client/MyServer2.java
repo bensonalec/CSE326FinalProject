@@ -66,25 +66,28 @@ public class MyServer2 {
         private String notif = null;
         private String ip = null;
 
+        //getter for name
         private String getName() {
             return this.name;
         }
+        //setter for name
         private void setName(String name) {
             this.name = name;
         }
+        //getter for ip
         private String getIP() {
             return this.ip;
         }
+        //setter for ip
         private void setIP(String IP) {
             this.ip = IP;
         }
-
-        //Initializes the socket
+        //setter for socket, NOTE THIS IS NEEDED TO INITIALIZE
         private void setSock(Socket socket) {
             sock = socket;
-            this.name = name;
             this.ip = sock.getRemoteSocketAddress().toString();
         }
+        //getter for socket
         private Socket getSock() {
             return this.sock;
         }
@@ -92,17 +95,22 @@ public class MyServer2 {
         //Receives a packet
         private String receiveFrom() {
             try {
-                in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-                String received = in.readLine();
-                String[] notification = received.split("\t");
-                if(notification[0].contains("@")) {
-                    name = notification[0];
+                if(!sock.equals(null)) {
+                    in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+                    String received = in.readLine();
+                    String[] notification = received.split("\t");
+                    if(notification[0].contains("@")) {
+                        name = notification[0];
+                    }
+                    else {
+                        name = "Unkown";
+                    }
+                    notif = received;
+                    return received;
                 }
                 else {
-                    name = "Unkown";
+                    System.out.println("Must initialize wiht a socket object!");
                 }
-                notif = received;
-                return received;
 
             } catch(IOException e) {
                 return "Exception";
@@ -112,9 +120,13 @@ public class MyServer2 {
         //Sends a packet
         private void sendTo(String message) {
             try {
-                out = new PrintWriter(sock.getOutputStream(), true);
-                out.println(message);
-                out.flush();
+                if(!sock.equals(null)) {
+                    out = new PrintWriter(sock.getOutputStream(), true);
+                    out.println(message);
+                    out.flush();
+                } else {
+                    System.out.println("Must initialize with a socket object!");
+                }
             } catch(IOException e) {
                 System.out.println("Exception");
             }

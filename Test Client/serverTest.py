@@ -8,7 +8,7 @@ sock.connect(server_address)
 
 try:
     
-    sock.sendall("Hello\n".encode("UTF-8"))
+    sock.sendall("bensonalec@PythonTest\tHello\n".encode("UTF-8"))
     data = sock.recv(1024)
     print(data.decode())
 

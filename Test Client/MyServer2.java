@@ -10,32 +10,40 @@ public class MyServer2 {
         try {
             sock = new ServerSocket(5000);
             int i = 0;
-            ConnectionSock[] sockArray = new ConnectionSock[2];
+            //Map for the devicename, socket
             Map<String,ConnectionSock> connectionsList = new HashMap <String,ConnectionSock>();
+            //Map for the IP, socket
             Map<String,ConnectionSock> connectionsListIP = new HashMap <String,ConnectionSock>();
 
-            String[] received = new String[2];
             //This should end up (modified of course) being the accept Connections Socket
+            //Creates socket object for 2 connections, as its not threaded it is blocked until it receives a connection, then a bytestream, then a second connection
             for(i=0;i<2;i++) {
+                //Accepts the connection
                 recSock = sock.accept();
+                
+                //Creates a ConnectionSock object and makes it the accepted socket
                 ConnectionSock newSock = new ConnectionSock();
                 newSock.setSock(recSock);
-                newSock.name = "Unkown";
+                newSock.name = "Unknown";
                 newSock.receiveFrom();
+                
                 connectionsList.put(newSock.name,newSock);
                 connectionsListIP.put(newSock.ip,newSock);
+                
                 System.out.println(newSock.name + ": " + newSock.ip);
                 
             }
-            String out = null;
             //This should end up being the routing and sending thread
+            //Iterates through all  of the connected sockets
             for(String key: connectionsList.keySet()) {
                 ConnectionSock temp = connectionsList.get(key);
+                //Case for the android device, right now its mapped only to my personal phone
                 if(key.equals("bensonalec@ONEPLUS A5010")) {
                     temp.sendTo("This should go to phone");
                     temp.closeSock();
                 }
-                if(!key.equals("bensonalec@ONEPLUS A5010")) {
+                //case for anyhting not my phone, aka the desktop client
+                else {
                     temp.sendTo(connectionsList.get("bensonalec@ONEPLUS A5010").notif);
                     temp.closeSock();
                 }
@@ -58,18 +66,41 @@ public class MyServer2 {
         private String notif = null;
         private String ip = null;
 
+        private String getName() {
+            return this.name;
+        }
+        private void setName(String name) {
+            this.name = name;
+        }
+        private String getIP() {
+            return this.IP;
+        }
+        private void setIP(String IP) {
+            this.IP = IP;
+        }
+
+        //Initializes the socket
         private void setSock(Socket socket) {
             sock = socket;
             this.name = name;
             this.ip = sock.getRemoteSocketAddress().toString();
         }
+        private Socket getSock() {
+            return this.sock;
+        }
 
+        //Receives a packet
         private String receiveFrom() {
             try {
                 in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
                 String received = in.readLine();
                 String[] notification = received.split("\t");
-                name = notification[0];
+                if(notification[0].contains("@")) {
+                    name = notification[0];
+                }
+                else {
+                    name = "Unkown";
+                }
                 notif = received;
                 return received;
 
@@ -78,6 +109,7 @@ public class MyServer2 {
             }
         }
 
+        //Sends a packet
         private void sendTo(String message) {
             try {
                 out = new PrintWriter(sock.getOutputStream(), true);
@@ -89,6 +121,7 @@ public class MyServer2 {
         
         }
 
+        //Closes the socket
         private void closeSock() {
             try {
                 in.close();

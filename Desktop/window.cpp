@@ -138,7 +138,9 @@ void window::setupTrayIcon(QApplication* par) {
 }
 
 void window::sendNotif(){
-
+        if (sock->write("bensonalec@tmp\twhatever\n") == -1){
+                std::cout << sock->error() << "\n";
+        }
 }
 
 void window::show(){
@@ -147,6 +149,13 @@ void window::show(){
 
 void window::readNotif(){
         std::cout << "package recieved\n";
+
+        char buf[1024];
+
+        sock->read(buf, 1023);
+
+        std::cout << buf << "\n";
+
         n = new notif();
 }
 
@@ -161,6 +170,11 @@ void window::setupConnection(){
                 std::cout << "connected\n";
         } else{
                 std::cout << "unable to connect\n";
+                std::cout << sock->error() << "\n";
+                exit(0);
+        }
+
+        if (sock->write("bensonalec@tmp\twhatever\n") == -1){
                 std::cout << sock->error() << "\n";
         }
 

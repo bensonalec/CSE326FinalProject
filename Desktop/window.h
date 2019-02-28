@@ -68,4 +68,5 @@ class window : public QObject
                 void closeTab(int i);
                 void sendNotif();
                 void readNotif();
+                //void disconnected();
 };

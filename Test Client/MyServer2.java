@@ -1,18 +1,5 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.net.ServerSocket;
-import java.io.File;
-import java.io.FileReader;
 import java.io.*;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
+import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,6 +12,7 @@ public class MyServer2 {
             int i = 0;
             ConnectionSock[] sockArray = new ConnectionSock[2];
             Map<String,ConnectionSock> connectionsList = new HashMap <String,ConnectionSock>();
+            Map<String,ConnectionSock> connectionsListIP = new HashMap <String,ConnectionSock>();
 
             String[] received = new String[2];
             //This should end up (modified of course) being the accept Connections Socket
@@ -34,6 +22,7 @@ public class MyServer2 {
                 newSock.setSock(recSock);
                 newSock.receiveFrom();
                 connectionsList.put(newSock.name,newSock);
+                connectionsListIP.put(newSock.ip,newSock);
                 System.out.println(newSock.name + ": " + newSock.ip);
                 
             }

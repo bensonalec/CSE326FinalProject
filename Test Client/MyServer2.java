@@ -27,60 +27,31 @@ public class MyServer2 {
             Map<String,ConnectionSock> connectionsList = new HashMap <String,ConnectionSock>();
 
             String[] received = new String[2];
-
+            //This should end up (modified of course) being the accept Connections Socket
             while(i < 2) {
                 recSock = sock.accept();
                 ConnectionSock newSock = new ConnectionSock();
-//                sockArray[i] = new ConnectionSock();
-//                sockArray[i].setSock(recSock, "Tester");
-                newSock.setSock(recSock,"Tester");                                  
-                //received[i] = sockArray[i].receiveFrom();
+                newSock.setSock(recSock,"Tester");
                 newSock.receiveFrom();
                 connectionsList.put(newSock.name,newSock);
                 i++;
                 
             }
-            /*
-            String received = sockArray[0].receiveFrom();
-            sockArray[0].sendTo("HI");
-            sockArray[0].closeSock();
-            sockArray[1].receiveFrom();
-            sockArray[1].sendTo(received);
-            sockArray[1].closeSock();
-            System.out.println(sockArray[0].name);
-            System.out.println(sockArray[1].name);
-
-            System.out.println(received);  
-            */
             String out = null;
-            //has to receive to know it's name
-            /*
-            for(i = 0; i < 2; i++) {
-                if(sockArray[i].name.equals("bensonalec@ONEPLUS A5010")) {
-                    sockArray[i].sendTo("HI");
-                    sockArray[i].closeSock();
-
-                }
-                if(sockArray[i].name.equals("bensonalec@PythonTest")) {
-                    sockArray[i].sendTo("Sample");
-                    sockArray[i].closeSock();
-
-                }
-            }
-            */
+            //This should end up being the routing and sending thread
             for(String key: connectionsList.keySet()) {
                 ConnectionSock temp = connectionsList.get(key);
                 if(key.equals("bensonalec@ONEPLUS A5010")) {
                     temp.sendTo("This should go to phone");
                     temp.closeSock();
                 }
-                if(key.equals("bensonalec@PythonTest")) {
+                if(!key.equals("bensonalec@ONEPLUS A5010")) {
                     temp.sendTo(connectionsList.get("bensonalec@ONEPLUS A5010").notif);
                     temp.closeSock();
                 }
             }            
 
-            System.out.println(out);
+            System.out.println("Finished Routing");
               
             
         } catch (IOException e) {

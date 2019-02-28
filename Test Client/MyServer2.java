@@ -31,10 +31,10 @@ public class MyServer2 {
             for(i=0;i<2;i++) {
                 recSock = sock.accept();
                 ConnectionSock newSock = new ConnectionSock();
-                newSock.setSock(recSock,"Tester");
+                newSock.setSock(recSock);
                 newSock.receiveFrom();
                 connectionsList.put(newSock.name,newSock);
-                
+                System.out.println(newSock.name + ": " + newSock.ip);
                 
             }
             String out = null;
@@ -66,10 +66,12 @@ public class MyServer2 {
         private PrintWriter out = null;
         private String name = null;
         private String notif = null;
+        private String ip = null;
 
-        private void setSock(Socket socket, String name) {
+        private void setSock(Socket socket) {
             sock = socket;
             this.name = name;
+            this.ip = sock.getRemoteSocketAddress().toString();
         }
 
         private String receiveFrom() {

@@ -73,10 +73,10 @@ public class MyServer2 {
             this.name = name;
         }
         private String getIP() {
-            return this.IP;
+            return this.ip;
         }
         private void setIP(String IP) {
-            this.IP = IP;
+            this.ip = IP;
         }
 
         //Initializes the socket

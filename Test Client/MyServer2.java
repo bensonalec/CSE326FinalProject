@@ -20,6 +20,7 @@ public class MyServer2 {
                 recSock = sock.accept();
                 ConnectionSock newSock = new ConnectionSock();
                 newSock.setSock(recSock);
+                newSock.name = "Unkown";
                 newSock.receiveFrom();
                 connectionsList.put(newSock.name,newSock);
                 connectionsListIP.put(newSock.ip,newSock);

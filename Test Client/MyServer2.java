@@ -28,13 +28,13 @@ public class MyServer2 {
 
             String[] received = new String[2];
             //This should end up (modified of course) being the accept Connections Socket
-            while(i < 2) {
+            for(i=0;i<2;i++)
                 recSock = sock.accept();
                 ConnectionSock newSock = new ConnectionSock();
                 newSock.setSock(recSock,"Tester");
                 newSock.receiveFrom();
                 connectionsList.put(newSock.name,newSock);
-                i++;
+                
                 
             }
             String out = null;

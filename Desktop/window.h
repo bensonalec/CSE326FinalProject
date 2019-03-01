@@ -11,13 +11,17 @@ class notif : public QObject {
 public:
         notif();
         notif(QString *title, QString *msg);
+
         void show();
         void hide();
         void setPosition(QPoint *p);
         void setSize(int x, int y);
+        void setHTML(QString *title, QString *msg);
 
 private:
         QTextEdit *win;
+        QString *tit;
+        QString *mes;
 
 };
 
@@ -68,5 +72,5 @@ class window : public QObject
                 void closeTab(int i);
                 void sendNotif();
                 void readNotif();
-                //void disconnected();
+                void reconnect();
 };

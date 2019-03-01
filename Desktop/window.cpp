@@ -138,7 +138,7 @@ void window::setupTrayIcon(QApplication* par) {
 }
 
 void window::sendNotif(){
-        if (sock->write("bensonalec@tmp\twhatever\n") == -1){
+        if (sock->write("bensonalec@tmp#whatever\n") == -1){
                 std::cout << sock->error() << "\n";
         }
 }
@@ -150,34 +150,48 @@ void window::show(){
 void window::readNotif(){
         std::cout << "package recieved\n";
 
-        char buf[1024];
+        QString buf = QString(sock->readLine());
 
-        sock->read(buf, 1023);
+        QStringList l = buf.split("#");
 
-        std::cout << buf << "\n";
+        QString device = l.takeFirst();
+        QString appName = l.takeFirst();
+        QString notifTitle = l.takeFirst();
+        QString notifBody = l.takeFirst();
 
-        n = new notif();
+        n = new notif(&notifTitle, &notifBody);
+
+        //n->setPosition();
+
+        n->show();
 }
 
 void window::setupConnection(){
         sock = new QTcpSocket();
-        QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readNotif()));
 
         QString addrStr = "75.161.255.35";
 
-        sock->connectToHost("jerry.cs.nmt.edu", SERVER_PORT, QIODevice::ReadWrite);
-        if (sock->waitForConnected(5000)){
-                std::cout << "connected\n";
-        } else{
-                std::cout << "unable to connect\n";
-                std::cout << sock->error() << "\n";
-                exit(0);
-        }
+        do {
+                std::cout << "Waiting for connection to server\n";
+                sock->connectToHost("jerry.cs.nmt.edu", SERVER_PORT, QIODevice::ReadWrite);
+                sleep(2);
+        } while (!sock->waitForConnected(5000));
 
-        if (sock->write("bensonalec@tmp\twhatever\n") == -1){
-                std::cout << sock->error() << "\n";
-        }
+        QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readNotif()));
 
+        QObject::connect(sock, SIGNAL(disconnected()), this, SLOT(reconnect()));
+
+        std::cout << "Connected to server\n";
+        
+
+}
+
+void window::reconnect(){
+        do {
+                std::cout << "Waiting for connection to server\n";
+                sock->connectToHost("jerry.cs.nmt.edu", SERVER_PORT, QIODevice::ReadWrite);
+                sleep(2);
+        } while (!sock->waitForConnected(5000));
 }
 
 notif::notif() {
@@ -191,7 +205,8 @@ notif::notif(QString *title, QString *msg) {
         win = new QTextEdit(NULL);
         win->setWindowTitle(*title);
         win->setReadOnly(true);
-        win->setText(*msg);
+        setHTML(title, msg);
+        //win->setText(*msg);
 }
 
 void notif::show(){
@@ -207,4 +222,23 @@ void notif::setSize(int x, int y){
         win->setMaximumSize(x, y);
         //win->resize(x, y);
 
+}
+
+void notif::setHTML(QString *title, QString *msg){
+        QFile f("notif.html");
+        
+        !f.open(QFile::ReadOnly | QFile::Text);
+
+        QTextStream in(&f);
+
+        QString *html = new QString(in.readAll());
+
+        f.close();
+
+        html->insert(45, title);
+        html->insert(85 + title->length(), msg);
+
+        std::cout << html->toStdString() << "\n";
+
+        win->setHtml(*html);
 }

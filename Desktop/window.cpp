@@ -5,11 +5,17 @@
 
 #include "window.h"
 
+
+/**
+ * @brief      Constructs the main window of the application.
+ *
+ * @param      par   The parent application
+ */
 window::window(QApplication *par) {
 
         setupConnection();
-        setupTrayIcon(par);
 
+        setupTrayIcon(par);
         setupMenuEntries();
         setupMenuBar();
         setupCenter();
@@ -17,6 +23,10 @@ window::window(QApplication *par) {
         coreWin.setFixedSize(400, 400);
 }
 
+
+/**
+ * @brief      sets up the top menu bar for the window
+ */
 void window::setupMenuBar(){
         for (int i = 0; i < MENU_ITEMS; i++){
                 menuBar.addMenu(&menuEntries[i]);
@@ -25,6 +35,10 @@ void window::setupMenuBar(){
         coreWin.setMenuBar(&menuBar);
 }
 
+
+/**
+ * @brief      Sets up the menu entries for the application
+ */
 void window::setupMenuEntries() {
         menuEntries = new QMenu[MENU_ITEMS]();
 
@@ -45,6 +59,10 @@ void window::setupMenuEntries() {
 
 }
 
+
+/**
+ * @brief      Sets up the main part of the window
+ */
 void window::setupCenter(){
 
         center.setTabBarAutoHide(true);
@@ -61,6 +79,10 @@ void window::setupCenter(){
         coreWin.setCentralWidget(&center);
 }
 
+
+/**
+ * @brief      destroys, deallocates and disconnects the components of the application
+ */
 void window::quit() {
 
 
@@ -97,12 +119,21 @@ void window::quit() {
         exit(0);
 }
 
+
+/**
+ * @brief      Opens the settings.
+ */
 void window::openSettings() {
         if (center.indexOf(&Settings) == -1){
                 center.addTab(&Settings, "Settings");
+                initSettings();
         }
 }
 
+
+/**
+ * @brief      Opens the feed.
+ */
 void window::openFeed() {
         if (center.indexOf(&Feed) == -1){
                 center.addTab(&Feed, "Feed");
@@ -110,14 +141,36 @@ void window::openFeed() {
         }
 }
 
+
+/**
+ * @brief      Closes a tab in the core window
+ *
+ * @param[in]  i     the index
+ */
 void window::closeTab(int i) {
         center.removeTab(i);
 }
 
+
+/**
+ * @brief      Initializes the settings for the window
+ */
 void window::initSettings() {
+        static bool initialized = false;
+
+        if (!initialized){
+                initialized = true;
+
+
+        }
+
         // TBA when settings are declared
 }
 
+
+/**
+ * @brief      Initializes the feed for the core window
+ */
 void window::initFeed() {
         // TBA when packets be sending
 
@@ -131,22 +184,40 @@ void window::initFeed() {
 
 }
 
+
+/**
+ * @brief      Sets up the system tray icon
+ *
+ * @param      par   The parent application
+ */
 void window::setupTrayIcon(QApplication* par) {
         trayIcon = new QIcon("warning.svg");
         sysIcon = new QSystemTrayIcon(*trayIcon, par);
         sysIcon->show();
 }
 
+
+/**
+ * @brief      Sends a notification to the server
+ */
 void window::sendNotif(){
-        if (sock->write("bensonalec@tmp#whatever\n") == -1){
+        if (sock->write("bensonalec@tmp#This is a test notification for testing purposes\n") == -1){
                 std::cout << sock->error() << "\n";
         }
 }
 
+
+/**
+ * @brief      Displays the core window
+ */
 void window::show(){
         coreWin.show();
 }
 
+
+/**
+ * @brief      Reads the incoming notification data from the socket
+ */
 void window::readNotif(){
         std::cout << "package recieved\n";
 
@@ -166,34 +237,39 @@ void window::readNotif(){
         n->show();
 }
 
+
+/**
+ * @brief      Instantiates the socket as well as connecting the required SIGNALS to SLOTS
+ */
 void window::setupConnection(){
         sock = new QTcpSocket();
 
-        QString addrStr = "75.161.255.35";
-
-        do {
-                std::cout << "Waiting for connection to server\n";
-                sock->connectToHost("jerry.cs.nmt.edu", SERVER_PORT, QIODevice::ReadWrite);
-                sleep(2);
-        } while (!sock->waitForConnected(5000));
+        reconnect();
 
         QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readNotif()));
 
         QObject::connect(sock, SIGNAL(disconnected()), this, SLOT(reconnect()));
 
-        std::cout << "Connected to server\n";
-        
-
 }
 
+
+/**
+ * @brief      Reconnects the application to the server when the socket sends a DISCONNECTED signal
+ */
 void window::reconnect(){
         do {
                 std::cout << "Waiting for connection to server\n";
                 sock->connectToHost("jerry.cs.nmt.edu", SERVER_PORT, QIODevice::ReadWrite);
                 sleep(2);
         } while (!sock->waitForConnected(5000));
+
+        std::cout << "Connected to server\n";
 }
 
+
+/**
+ * @brief      Default notification constructor used for testing purposes
+ */
 notif::notif() {
         win = new QTextEdit(NULL);
         win->setWindowTitle("This is a test window");
@@ -201,6 +277,13 @@ notif::notif() {
         win->setText("This is a test notification body");
 }
 
+
+/**
+ * @brief      Constructs the notification object.
+ *
+ * @param      title  The title of the notification
+ * @param      msg    The body of the notification
+ */
 notif::notif(QString *title, QString *msg) {
         win = new QTextEdit(NULL);
         win->setWindowTitle(*title);
@@ -209,14 +292,31 @@ notif::notif(QString *title, QString *msg) {
         //win->setText(*msg);
 }
 
+
+/**
+ * @brief      Displays the respective notification window
+ */
 void notif::show(){
         win->show();
 }
 
+
+/**
+ * @brief      Sets the position of the first notification window. Subsequent windows will grow up or down depending on the position.
+ *
+ * @param      p     { The position on the screen }
+ */
 void notif::setPosition(QPoint *p){
         win->move(p->x(), p->y());
 }
 
+
+/**
+ * @brief      Sets the size of the notification window.
+ *
+ * @param[in]  x     { the width of the notification window }
+ * @param[in]  y     { the height of the notification window  }
+ */
 void notif::setSize(int x, int y){
         win->setMinimumSize(x, y);
         win->setMaximumSize(x, y);
@@ -224,6 +324,13 @@ void notif::setSize(int x, int y){
 
 }
 
+
+/**
+ * @brief      Sets the html of the notification.
+ *
+ * @param      title  The title of the html page
+ * @param      msg    The body of the html page
+ */
 void notif::setHTML(QString *title, QString *msg){
         QFile f("notif.html");
         

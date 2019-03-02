@@ -11,13 +11,17 @@ class notif : public QObject {
 public:
         notif();
         notif(QString *title, QString *msg);
+
         void show();
         void hide();
         void setPosition(QPoint *p);
         void setSize(int x, int y);
+        void setHTML(QString *title, QString *msg);
 
 private:
         QTextEdit *win;
+        QString *tit;
+        QString *mes;
 
 };
 
@@ -29,6 +33,8 @@ class window : public QObject
         public:
                 window(QApplication *par);
                 void show();
+
+                bool loggedIn;
 
         private:
                 void setupMenuBar();
@@ -60,12 +66,21 @@ class window : public QObject
                 QGridLayout feedLayout;
                 QGridLayout settingsLayout;
 
+                QGridLayout loginLayout;
+
+                QLineEdit *uname_;
+                QLineEdit *pword_;
+
                 notif *n;
 
                 QTcpSocket *sock;
+
+                QSysInfo systemInfo;
 
         private slots:
                 void closeTab(int i);
                 void sendNotif();
                 void readNotif();
+                void reconnect();
+                void login();
 };

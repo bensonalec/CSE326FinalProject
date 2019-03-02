@@ -34,6 +34,8 @@ class window : public QObject
                 window(QApplication *par);
                 void show();
 
+                bool loggedIn;
+
         private:
                 void setupMenuBar();
                 void setupMenuEntries();
@@ -64,13 +66,21 @@ class window : public QObject
                 QGridLayout feedLayout;
                 QGridLayout settingsLayout;
 
+                QGridLayout loginLayout;
+
+                QLineEdit *uname_;
+                QLineEdit *pword_;
+
                 notif *n;
 
                 QTcpSocket *sock;
+
+                QSysInfo systemInfo;
 
         private slots:
                 void closeTab(int i);
                 void sendNotif();
                 void readNotif();
                 void reconnect();
+                void login();
 };

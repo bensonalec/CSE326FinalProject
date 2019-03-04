@@ -11,14 +11,25 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+
+
 public class Server3 {
 	int port = 5000;
 	Map<String, Socket> connected_users = new ConcurrentHashMap<String, Socket>();
 	ConcurrentLinkedQueue<Frame> stack = new ConcurrentLinkedQueue<Frame>();
 	public static void main(String[] arg) {
-		
-	
-	
+		Server3 serv = new Server3();
+		//start server
+		serv.start_server();
+	}
+	void start_server() {
+		//start each thread.
+		Connector a = new Connector();
+		Listener b = new Listener();
+		Grouper c = new Grouper();
+		a.start();
+		b.start();
+		c.start();
 	}
 	public class Frame {
 		String packet;

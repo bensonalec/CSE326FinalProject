@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class Test_server {
+public class Test_server2 {
 	public static void main(String[] args)  {
 		Socket soc = null;
 		Boolean a = true;
@@ -34,9 +34,9 @@ public class Test_server {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		out.write("test1@group1");
+		out.write("test2@group1");
 		out.flush();
-		out.write("snapchat recieved");
+		out.write("text message recieved");
 		out.flush();
 		
 		//socket connect

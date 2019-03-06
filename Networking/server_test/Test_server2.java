@@ -14,7 +14,7 @@ public class Test_server2 {
 		PrintWriter out = null;
 		while(a) {
 			try {
-				soc = new Socket("localhost",5000);
+				soc = new Socket("localhost",5050);
 				a = false;
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block

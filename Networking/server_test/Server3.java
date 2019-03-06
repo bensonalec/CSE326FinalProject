@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 public class Server3 {
-	int port = 5000;
+	int port = 5050;
 	Map<String, Socket> connected_users = new ConcurrentHashMap<String, Socket>();
 	ConcurrentLinkedQueue<Frame> stack = new ConcurrentLinkedQueue<Frame>();
 	public static void main(String[] arg) {
@@ -56,6 +56,7 @@ public class Server3 {
 				try {
 					//accept new user.
 					soc = serv.accept();
+					System.out.println("Socket accepted");
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -75,6 +76,7 @@ public class Server3 {
 				//push users name and socket to hashmap that contains connected users.
 				try {
 					connected_users.put(in.readLine(), soc);
+					System.out.println("new user = " + connected_users.toString());
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -103,9 +105,11 @@ public class Server3 {
 			      try {
 			    	//if string has line push notification on stack.
 					if(in.ready()) {
+					      System.out.println("Reading");
 						  while(in.ready()) {
 							 buf = buf.concat(in.readLine());
 						  }
+						  System.out.println(buf);
 						  stack.add(new Frame(entry.getKey(),buf));
 					}
 				} catch (IOException e) {
@@ -124,6 +128,7 @@ public class Server3 {
 			//Checks if there are frames to be sent
 			while(true) {
 				if(!stack.isEmpty()) {
+					System.out.println("Grouping");
 					//pop from stack
 					current = stack.remove();
 					parse = current.name.split("@");

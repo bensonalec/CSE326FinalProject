@@ -14,7 +14,8 @@ public class Test_server {
 		PrintWriter out = null;
 		while(a) {
 			try {
-				soc = new Socket("localhost",5000);
+				System.out.println("attemping connection");
+				soc = new Socket("localhost",5050);
 				a = false;
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
@@ -25,7 +26,7 @@ public class Test_server {
 				e.printStackTrace();
 			}
 		}
-
+		System.out.println("connected.");
 		Test_server serv = new Test_server();
 		serv.start_listen(soc);
 		try {

@@ -81,12 +81,21 @@ public class login {
 		            Connection connectionconnection = DriverManager.getConnection(dbURL, username, password);
 		            if(connectionconnection != null) {
 		                
-		                //CREATE  A NEW STATEMENT
-		                Statement s = connectionconnection.createStatement();
 		                //THE QUERY TO BE EXECUTED
-		                String userQuery = "SELECT * FROM Users;";
-		                //EXECUTES THE QUERY DEFINED ABOVE
-		                ResultSet rs = s.executeQuery(userQuery);
+		                String userQuery = "SELECT * FROM Users WHERE UserName=? AND UserPassword=?;";
+		                //CREATE  A NEW STATEMENT
+		                PreparedStatement ps = connectionconnection.prepareStatement(userQuery);
+		                ps.setString(1, temp[0]);
+		                ps.setString(2, temp[1]);
+
+		                RestultSet rs = ps.executeQuery();
+
+		                rs.afterLast();
+
+		                if (rs.getRow > 0){
+		                	// CORRECT LOGIN INFO
+		                }
+
 		                //CHECKS IF THE QUERY WAS NULL OR NOT
 		                if(rs.next()) {
 		                    //GETS THE USERNAME OF FIRST RETURNED ROW
@@ -94,7 +103,7 @@ public class login {
 		                    System.out.println("Succesful query!");
 		                }
 		                //CLOSES STATEMENT
-		                s.close();
+		                ps.close();
 		                //CLOSES RESULTSET
 		                rs.close();
 		                //CLOSES CONNECTION

@@ -14,8 +14,8 @@
 window::window(QApplication *par) {
 
         loggedIn = false;
-
-        setupConnection();
+        sock = new QTcpSocket();
+        //setupConnection();
 
         setupTrayIcon(par);
         setupMenuEntries();
@@ -319,17 +319,24 @@ void window::reconnect(){
 void window::login(){
 
         std::cout << "login attempted\n";
-
         QString frameInfo = uname_->text();
         frameInfo.append("@");
         frameInfo.append(systemInfo.machineHostName());
 
-        QByteArray ba = frameInfo.toUtf8();
-
+        QByteArray ba;
+        ba.insert (0, "LOGIN");
+        ba.append(31);
+        ba.append(frameInfo.toUtf8());
+        ba.append(31);
+        ba.append(QCryptographicHash::hash(pword_->text().toUtf8(), QCryptographicHash::Md5));
         ba.append("\n");
 
-        if (sock->write(ba) == -1){
-                std::cout << sock->error() << "\n";
+        std::cout << ba.data() << "\n";
+
+        if (sock && sock->state() == QAbstractSocket::ConnectedState){
+                if (sock->write(ba) == -1){
+                        std::cout << sock->error() << "\n";
+                }
         }
 }
 

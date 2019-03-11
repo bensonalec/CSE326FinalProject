@@ -1,7 +1,10 @@
 #include <iostream>
+#include <thread>
+
 #include <QObject>
 #include <QtWidgets>
 #include <QtNetwork>
+#include <QtCore>
 
 #include <unistd.h>
 
@@ -76,6 +79,8 @@ class window : public QObject
                 QTcpSocket *sock;
 
                 QSysInfo systemInfo;
+
+                std::thread *connectionThread;
 
         private slots:
                 void closeTab(int i);

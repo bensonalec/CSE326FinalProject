@@ -15,6 +15,10 @@ window::window(QApplication *par) {
 
         loggedIn = false;
         sock = new QTcpSocket();
+
+        auto setupConnection_ = [this]() {this->setupConnection();};
+
+        connectionThread = new std::thread(setupConnection_);
         //setupConnection();
 
         setupTrayIcon(par);

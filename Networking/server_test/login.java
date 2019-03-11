@@ -1,3 +1,5 @@
+package com;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -5,9 +7,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 public class login {
 	//Connect to the database, then start reading in socs and then verify login.
@@ -64,7 +66,7 @@ public class login {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				String[] temp;
+				String[] temp = null;
 				try {
 					temp = in.readLine().split(" ");
 					
@@ -88,7 +90,7 @@ public class login {
 		                ps.setString(1, temp[0]);
 		                ps.setString(2, temp[1]);
 
-		                RestultSet rs = ps.executeQuery();
+		                ResultSet rs = ps.executeQuery();
 
 		                rs.afterLast();
 

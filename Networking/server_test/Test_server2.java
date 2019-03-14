@@ -14,7 +14,7 @@ public class Test_server2 {
 		PrintWriter out = null;
 		while(a) {
 			try {
-				soc = new Socket("localhost",5050);
+				soc = new Socket("localhost",5000);
 				a = false;
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
@@ -26,7 +26,7 @@ public class Test_server2 {
 			}
 		}
 
-		Test_server serv = new Test_server();
+		Test_server2 serv = new Test_server2();
 		serv.start_listen(soc);
 		try {
 			out = new PrintWriter(soc.getOutputStream());
@@ -42,7 +42,8 @@ public class Test_server2 {
 		//socket connect
 	}
 	void start_listen(Socket soc) {
-		new Listen(soc).start();
+		Listen a = new Listen(soc);
+		a.start();
 	}
 
 	public class Listen extends Thread {

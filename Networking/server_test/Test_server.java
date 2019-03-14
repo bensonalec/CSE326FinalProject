@@ -15,7 +15,7 @@ public class Test_server {
 		while(a) {
 			try {
 				System.out.println("attemping connection");
-				soc = new Socket("localhost",5050);
+				soc = new Socket("localhost",5000);
 				a = false;
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
@@ -43,7 +43,8 @@ public class Test_server {
 		//socket connect
 	}
 	void start_listen(Socket soc) {
-		new Listen(soc).start();
+		Listen a = new Listen(soc);
+		a.start();
 	}
 
 	public class Listen extends Thread {

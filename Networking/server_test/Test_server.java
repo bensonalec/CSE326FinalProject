@@ -1,9 +1,9 @@
 package com;
 
-import java.io.BufferedReader;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -11,7 +11,8 @@ public class Test_server {
 	public static void main(String[] args)  {
 		Socket soc = null;
 		Boolean a = true;
-		PrintWriter out = null;
+		DataOutputStream out = null;
+		DataInputStream in = null;
 		while(a) {
 			try {
 				System.out.println("attemping connection");
@@ -27,50 +28,48 @@ public class Test_server {
 			}
 		}
 		System.out.println("connected.");
-		Test_server serv = new Test_server();
-		serv.start_listen(soc);
 		try {
-			out = new PrintWriter(soc.getOutputStream());
+			out = new DataOutputStream(soc.getOutputStream());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		out.write("test1@group1");
-		out.flush();
-		out.write("snapchat recieved");
-		out.flush();
-		
-		//socket connect
-	}
-	void start_listen(Socket soc) {
-		Listen a = new Listen(soc);
-		a.start();
-	}
-
-	public class Listen extends Thread {
-		Socket soc;
-		BufferedReader in;
-		Listen(Socket a){
-			soc = a;
+		try {
+			System.out.println("test1@group1\n");
+			out.writeUTF("test1@group1\n");
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
-		public void run(){
+		//out.flush();
+		try {
+			out.writeUTF("snapchat recieved\n");
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		try {
+			in = new DataInputStream(soc.getInputStream());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		while(true) {
 			try {
-				in = new BufferedReader(new InputStreamReader(soc.getInputStream()));
+				if(in.available() != 0) {
+					System.out.println(in.readUTF());
+					break;
+				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			while(true) {
-				try {
-					if(in.ready()) {
-						System.out.println(in.readLine());
-					}
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 
-			}
 		}
+		
+		//socket connect
 	}
+
+
 }

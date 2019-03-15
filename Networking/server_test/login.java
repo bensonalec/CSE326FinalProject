@@ -97,7 +97,7 @@ public class login {
 		                if (rs.getRow() > 0){
 		                	// CORRECT LOGIN INFO
 		                }
-    
+
 		                //CHECKS IF THE QUERY WAS NULL OR NOT
 		                if(rs.next()) {
 		                    //GETS THE USERNAME OF FIRST RETURNED ROW

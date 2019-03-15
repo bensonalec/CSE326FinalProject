@@ -1,9 +1,8 @@
 package com;
 
-import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
@@ -58,6 +57,7 @@ public class Server3 {
 	    }); 
 		//Runtime.getRuntime().addShutdownHook(b);
 		//Runtime.getRuntime().addShutdownHook(c);
+		System.out.println("Starting threads");
 		a.start();
 		b.start();
 		c.start();
@@ -73,7 +73,7 @@ public class Server3 {
 	public class Connector extends Thread{
 		ServerSocket serv;
 		Socket soc;
-		BufferedReader in;
+		DataInputStream in;
 		Connector(ServerSocket a){
 			serv = a;
 		}
@@ -92,7 +92,7 @@ public class Server3 {
 				}
 				//Get input stream
 				try {
-					in = new BufferedReader(new InputStreamReader(soc.getInputStream()));
+					in = new DataInputStream(soc.getInputStream());
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -104,9 +104,15 @@ public class Server3 {
 				
 				//push users name and socket to hashmap that contains connected users.
 				try {
-					String[] temp = in.readLine().split(" ");
-					connected_users.put(temp[0], soc);
-					System.out.println("new user = " + connected_users.toString());
+					//String[] temp = in.readLine().split(" ");
+					//while(true) {
+					//	if(in) {
+							String temp = in.readUTF();
+							connected_users.put(temp, soc);
+							System.out.println("new user = " + temp);
+					//	}
+					//}
+
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -120,27 +126,26 @@ public class Server3 {
 		Socket temp;
 		String username;
 		String buf;
-		BufferedReader in;
+		DataInputStream in;
 		public void run() {
 			/* Need to go through sockets and check if new connection*/
 			/* also clean up closed sockets */
+
 			while(turnoff) {
 				  for (Entry<String, Socket> entry : connected_users.entrySet()) {
-				      temp = entry.getValue();
-				      if(!temp.isInputShutdown()) {
+					  temp = entry.getValue();
+				     // if(!temp.isInputShutdown()) {
 					      try {
-					    	  in = new BufferedReader(new InputStreamReader(temp.getInputStream()));
+					    	  in = new DataInputStream(temp.getInputStream());
 					      } catch (IOException e1) {
 					    	  // TODO Auto-generated catch block
 					    	  e1.printStackTrace();
 					      }
 					      try {
 					    	  //if string has line push notification on stack.
-					    	  if(in.ready()) {
+					    	  if(in.available() != 0) {
 							      	System.out.println("Reading");
-							      	while(in.ready()) {
-							      		buf = buf.concat(in.readLine());
-							      	}
+							      	buf = in.readUTF();
 							      	System.out.println(buf);
 							      	stack.add(new Frame(entry.getKey(),buf));
 					    	  }
@@ -148,7 +153,7 @@ public class Server3 {
 							// TODO Auto-generated catch block
 					    	  e.printStackTrace();
 					      }
-				      }
+				      //}
 				 }
 			}
 
@@ -186,7 +191,7 @@ public class Server3 {
 	public class Sender extends Thread{
 		Frame current;
 		Socket destination;
-		PrintWriter out;
+		DataOutputStream out;
 		Sender(Frame a){
 			current = a;
 			//get destination socket
@@ -195,14 +200,18 @@ public class Server3 {
 		public void run() {
 			//create output using printwriter
 			 try {
-				out = new PrintWriter(destination.getOutputStream(), true);
+				out = new DataOutputStream(destination.getOutputStream());
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return;
 			}
-			out.write(current.packet);
-			out.flush();
+			try {
+				out.writeUTF(current.packet);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			/*send to all members in group*/
 		}
 	}

@@ -1,10 +1,5 @@
 package com;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -20,29 +15,19 @@ public class login {
 	
 	
 	//Send query to check username and password
-	
+
+    final static String dbURL = "jdbc:mysql://localhost:3306/cse326";
+    final static String username = "server";
+    final static String password = "2468135790";
 	
 	//--------------------------------------------
 	//check return statement
 	public static void main(String[] args) {
-		 new login().start_listen();
-	}
-	void start_listen() {
-		new listen().start();
-	}
-	
-	
-	
-	
-	//-----------------------------------------
-	public class listen extends Thread{
-	    final static String dbURL = "jdbc:mysql://localhost:3306/cse326";
-	    final static String username = "server";
-	    final static String password = "2468135790";
-		Socket soc;
-		ServerSocket serv;
-		BufferedReader in;
-		public void run() {
+
+		//Socket soc;
+		//ServerSocket serv;
+		//BufferedReader in;=
+			/*
 			try {
 				serv = new ServerSocket(5000);
 			} catch (IOException e1) {
@@ -69,13 +54,14 @@ public class login {
 				String[] temp = null;
 				try {
 					temp = in.readLine().split(" ");
-					
+				*/	
+					String[] temp = {"bensonalec", "sample"};
 					System.out.println("username = " + temp[0]);
 					System.out.println("password = " + temp[1]);
-				} catch (IOException e) {
+				//} catch (IOException e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				//	e.printStackTrace();
+				//}
 		        try {
 		            //LOAD PROPER DRIVERS
 		            Class.forName("com.mysql.jdbc.Driver");
@@ -96,6 +82,7 @@ public class login {
 
 		                if (rs.getRow() > 0){
 		                	// CORRECT LOGIN INFO
+		                	System.out.println("Password and Username Correct");
 		                }
 
 		                //CHECKS IF THE QUERY WAS NULL OR NOT
@@ -120,14 +107,8 @@ public class login {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				try {
-					serv.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+
 			//}
 		}
-	}
 
 }

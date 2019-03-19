@@ -9,10 +9,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
+import java.sql.*;
 
 
 public class Server3 {
+    final static String dbURL = "jdbc:mysql://localhost:3306/cse326";
+    final static String username = "server";
+    final static String password = "2468135790";
 	static int port = 5000;
 	Map<String, Socket> connected_users = new ConcurrentHashMap<String, Socket>();
 	ConcurrentLinkedQueue<Frame> stack = new ConcurrentLinkedQueue<Frame>();
@@ -35,6 +38,61 @@ public class Server3 {
 		//need to catch sig, and close threads based upon this.
 		//take user input to cause a shutdown.
 		
+	}
+	boolean verify(String username, String password) {
+		//Clean this up eventually didn't want to mess with it until it was fully tested
+		String[] temp = {username, password};
+		System.out.println("username = " + temp[0]);
+		System.out.println("password = " + temp[1]);
+
+		try {
+		    //LOAD PROPER DRIVERS
+		    Class.forName("com.mysql.jdbc.Driver");
+		    //MAKE A CONNECTION
+		    Connection connectionconnection = DriverManager.getConnection(dbURL, username, password);
+		    if(connectionconnection != null) {
+		        
+		        //THE QUERY TO BE EXECUTED
+		        String userQuery = "SELECT * FROM Users WHERE UserName=? AND UserPassword=?;";
+		        //CREATE  A NEW STATEMENT
+		        PreparedStatement ps = connectionconnection.prepareStatement(userQuery);
+		        ps.setString(1, temp[0]);
+		        ps.setString(2, temp[1]);
+		
+		        ResultSet rs = ps.executeQuery();
+		
+		        rs.afterLast();
+		
+		        if (rs.getRow() > 0){
+		        	// CORRECT LOGIN INFO
+		        	System.out.println("Password and Username Correct");
+		        	return true;
+		        }
+		
+		        //CHECKS IF THE QUERY WAS NULL OR NOT
+		        if(rs.next()) {
+		            //GETS THE USERNAME OF FIRST RETURNED ROW
+		            System.out.println(rs.getString("UserName"));
+		            System.out.println("Succesful query!");
+		        }
+		        //CLOSES STATEMENT
+		        ps.close();
+		        //CLOSES RESULTSET
+		        rs.close();
+		        //CLOSES CONNECTION
+		        connectionconnection.close();
+		    }
+		    else {
+		        System.out.println("Failure!");
+		    	return false;
+		    }
+		} catch (ClassNotFoundException e) {
+		    throw new IllegalStateException("Cannot find the driver in the classpath!", e);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
 	}
 	void start_server(ServerSocket serv) {
 
@@ -104,14 +162,26 @@ public class Server3 {
 				
 				//push users name and socket to hashmap that contains connected users.
 				try {
-					//String[] temp = in.readLine().split(" ");
-					//while(true) {
-					//	if(in) {
-							String temp = in.readUTF();
-							connected_users.put(temp, soc);
-							System.out.println("new user = " + temp);
-					//	}
-					//}
+					String temp = in.readUTF();
+					String[] verify = temp.split(" ");
+					String[] temp2 = verify[0].split("@");
+					//verify here
+					String username = temp2[1];
+					String password = verify[1];
+					DataOutputStream ack = new DataOutputStream(soc.getOutputStream());
+					if(verify(username, password)) { //passed verification
+						connected_users.put(verify[0], soc);
+						System.out.println("new user = " + temp);
+						
+						//send accept frame
+						ack.writeUTF("SUCCESS" + Character.toString((char) 31) + verify[0] + Character.toString((char) 31) + "EncrytedPasswordSererRecieved");
+
+					}
+					else { //failed verification
+						//send failure frame.
+						ack.writeUTF("FAILURE" + Character.toString((char) 31) + verify[0] + Character.toString((char) 31) + "EncrytedPasswordSererRecieved");
+					}
+
 
 				} catch (IOException e) {
 					// TODO Auto-generated catch block

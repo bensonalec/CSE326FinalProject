@@ -35,7 +35,8 @@ public class Test_server2 {
 			e.printStackTrace();
 		}
 		try {
-			out.writeUTF("test2@group1\n");
+			//signin
+			out.writeUTF("LOGIN" + Character.toString((char) 31) + "bensonalec@device2" + Character.toString((char) 31) + "sample");
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

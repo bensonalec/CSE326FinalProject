@@ -35,19 +35,12 @@ public class Test_server {
 			e.printStackTrace();
 		}
 		try {
-			System.out.println("test1@group1\n");
-			out.writeUTF("test1@group1\n");
+			out.writeUTF("LOGIN" + Character.toString((char) 31) + "bensonalec@device1" + Character.toString((char) 31) + "sample");
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		//out.flush();
-		try {
-			out.writeUTF("snapchat recieved\n");
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+
 
 		try {
 			in = new DataInputStream(soc.getInputStream());
@@ -55,11 +48,12 @@ public class Test_server {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		while(true) {
+		int i = 0;
+		while(i < 2) {
 			try {
 				if(in.available() != 0) {
 					System.out.println(in.readUTF());
-					break;
+					i = i + 1;
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -67,7 +61,12 @@ public class Test_server {
 			}
 
 		}
-		
+		try {
+			soc.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		//socket connect
 	}
 

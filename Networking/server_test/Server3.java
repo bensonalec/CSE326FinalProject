@@ -13,17 +13,30 @@ import java.sql.*;
 
 
 public class Server3 {
+	
+	//This is used for connection to jdbc
     final static String dbURL = "jdbc:mysql://localhost:3306/cse326";
     final static String username = "server";
     final static String password = "2468135790";
+    
+    //Port number that the server will listen on
 	static int port = 5000;
-	Map<String, Socket> connected_users = new ConcurrentHashMap<String, Socket>();
+	
+	//This will map the client to its tcp  socket
+	Map<Client, Socket> connected_users = new ConcurrentHashMap<Client, Socket>();
+	
+	//This stack will hold frame that need to be sent to group of users
 	ConcurrentLinkedQueue<Frame> stack = new ConcurrentLinkedQueue<Frame>();
+	
+	//Used in shutdown hook to turn off while look in threads
 	volatile boolean turnoff = true;
+	
+	
 	public static void main(String[] arg) {
 		ServerSocket s = null;
+		
+		//create server socket location of this may change
 		try {
-			//add this in super
 			s = new ServerSocket(port);
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
@@ -34,9 +47,7 @@ public class Server3 {
 		Server3 serv = new Server3();
 		//start server
 		serv.start_server(s);
-		
-		//need to catch sig, and close threads based upon this.
-		//take user input to cause a shutdown.
+
 		
 	}
 	boolean verify(String username, String password) {
@@ -97,9 +108,14 @@ public class Server3 {
 	void start_server(ServerSocket serv) {
 
 		//start each thread.
+		
+		//Creates the 3 threads that will be always running in the server
 		Connector a = new Connector(serv);
 		Listener b = new Listener();
 		Grouper c = new Grouper();
+		
+		
+		//This shutdown hook will close the servers socket and all for while loops in the threads to break
 		Runtime.getRuntime().addShutdownHook(new Thread() 
 	    { 
 	      public void run() 
@@ -113,21 +129,62 @@ public class Server3 {
 	        turnoff = false;
 	      } 
 	    }); 
-		//Runtime.getRuntime().addShutdownHook(b);
-		//Runtime.getRuntime().addShutdownHook(c);
+
+		//Start the threads
 		System.out.println("Starting threads");
 		a.start();
 		b.start();
 		c.start();
 	}
+	
+	/*
+	 * The Frame class is used to hold the Client and data packet that was either
+	 * sent from or is the destination depending on which thread it is in.
+	 */
 	public class Frame {
 		String packet;
-		String name;
-		Frame(String name, String packet){
+		Client user;
+		Frame(Client name, String packet){
 			this.packet = packet;
-			this.name = name;
+			this.user = name;
 		}
 	}
+	
+	/**
+	 * This will hold client information such as username, password, and device type
+	 * Along with flag that may be used in registration.
+	 */
+	
+	public class Client {
+		String username;
+		String password;
+		String device;
+		String type;
+		
+		//Constructor for client which parses LOGIN frame to get information. 
+		//May need to be changed at some point to work with registration frame.
+		
+		Client(String login){
+			//example frame format LOGIN(ascii 31)username@device(ascii 31)password
+			
+			//split on ascii 31
+			String[] temp = login.split(Character.toString((char) 31));
+			password = temp[2];
+			
+			//type is used to hold either LOGIN or REGISTRATION 
+			type = temp[0];
+			String[] temp2 = temp[1].split("@");
+			username = temp2[0];
+			device = temp2[1];
+			
+		}
+	}
+	
+	/*
+	 * This thread will wait for new connections and then from there create local
+	 * client for the instance, along with verifying credentials on the server
+	 */
+	
 	public class Connector extends Thread{
 		ServerSocket serv;
 		Socket soc;
@@ -155,32 +212,39 @@ public class Server3 {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				//----------------------------------------------------------
-				//Verify login, if not close connection
-				//and add device to table. 
-				//---------------------------------------------------------
-				
-				//push users name and socket to hashmap that contains connected users.
+
 				try {
-					String temp = in.readUTF();
-					String[] verify = temp.split(" ");
-					String[] temp2 = verify[0].split("@");
-					//verify here
-					String username = temp2[1];
-					String password = verify[1];
+					
+					//login format 
+					//"LOGIN" + Character.toString((char) 31) + "username@device" + Character.toString((char) 31) + "passwords");
+
+					//also eventually use .startswith if statement to choose between LOGIN and REGISTER.
+					
+					
+					String temp = in.readUTF(); //reads in frame
+					
+					Client current = new Client(temp);
+					
 					DataOutputStream ack = new DataOutputStream(soc.getOutputStream());
-					if(verify(username, password)) { //passed verification
-						connected_users.put(verify[0], soc);
-						System.out.println("new user = " + temp);
+					
+					
+					
+					
+		//			if(verify(username, password)) { 
+						//passed verification
+						
+						//Add new user to list of current connected users
+						connected_users.put(current, soc);
 						
 						//send accept frame
-						ack.writeUTF("SUCCESS" + Character.toString((char) 31) + verify[0] + Character.toString((char) 31) + "EncrytedPasswordSererRecieved");
-
-					}
-					else { //failed verification
+						ack.writeUTF("SUCCESS" + Character.toString((char) 31) + current.username + "@" + current.device + Character.toString((char) 31) + "EncrytedPasswordServerRecieved");
+		//			}
+		//			else { 
+		//				//failed verification
+						
 						//send failure frame.
-						ack.writeUTF("FAILURE" + Character.toString((char) 31) + verify[0] + Character.toString((char) 31) + "EncrytedPasswordSererRecieved");
-					}
+		//				ack.writeUTF("FAILURE" + Character.toString((char) 31) + current.username + "@" + current.device + Character.toString((char) 31) + "EncrytedPasswordServerRecieved");
+		//			}
 
 
 				} catch (IOException e) {
@@ -192,6 +256,13 @@ public class Server3 {
 			
 		}
 	}
+	
+	
+	/*
+	 * Listen checks all connected to user to see if a new frame has arrived
+	 */
+	
+	
 	public class Listener extends Thread{
 		Socket temp;
 		String username;
@@ -202,87 +273,121 @@ public class Server3 {
 			/* also clean up closed sockets */
 
 			while(turnoff) {
-				  for (Entry<String, Socket> entry : connected_users.entrySet()) {
+				  for (Entry<Client, Socket> entry : connected_users.entrySet()) {
 					  temp = entry.getValue();
-				     // if(!temp.isInputShutdown()) {
-					      try {
-					    	  in = new DataInputStream(temp.getInputStream());
-					      } catch (IOException e1) {
-					    	  // TODO Auto-generated catch block
-					    	  e1.printStackTrace();
-					      }
-					      try {
-					    	  //if string has line push notification on stack.
-					    	  if(in.available() != 0) {
-							      	System.out.println("Reading");
-							      	buf = in.readUTF();
-							      	System.out.println(buf);
-							      	stack.add(new Frame(entry.getKey(),buf));
-					    	  }
-					      } catch (IOException e) {
-							// TODO Auto-generated catch block
-					    	  e.printStackTrace();
-					      }
-				      //}
+					  
+					  
+					  //remove socket if it is closed
+					  if(entry.getValue().isClosed()) {
+						  System.out.println("Removing device = " + entry.getKey().device);
+						  connected_users.remove(entry.getKey());
+					  }
+					  
+					  //create new data input stream
+					  
+				      try {
+				    	  in = new DataInputStream(temp.getInputStream());
+				      } catch (IOException e1) {
+				    	  // TODO Auto-generated catch block
+				    	  e1.printStackTrace();
+				      }
+				    
+				      //Check if socket has info and if so push to stack
+				      
+				      try {
+				    	  //if string has line push notification on stack.
+				    	  if(in.available() != 0) {
+						      	System.out.println("Reading");
+						      	
+						      	//read in data
+						      	buf = in.readUTF();
+						      	//push on stack to be sent
+						      	stack.add(new Frame(entry.getKey() ,buf));
+				    	  }
+				      } catch (IOException e) {
+						// TODO Auto-generated catch block
+				    	  e.printStackTrace();
+				      }
+
 				 }
 			}
 
 		}
 	}
+	
+	/*
+	 * This thread will take frames from the stack. Then it will figure out which 
+	 * client the frame will need to be sent and then make threads to send the frame
+	 */
+	
+	
 	public class Grouper extends Thread{
 		public void run() {
 			/*find other devices in groups*/
 			Frame current;
-			String []parse;
+			
 			//Checks if there are frames to be sent
 			while(turnoff) {
 				if(!stack.isEmpty()) {
+					
 					System.out.println("Grouping");
 					//pop from stack
 					current = stack.remove();
-					parse = current.name.split("@");
-					//search from group
-					for (Entry<String, Socket> entry : connected_users.entrySet()) {
-					      if(entry.getKey().endsWith(parse[1])) {
-					    	  //create thread to send.
-					    	  new Sender(new Frame(entry.getKey(), current.packet)).start();
-					      }
-					 }
-
+					
+					//search for group member
+					for (Entry<Client, Socket> entry : connected_users.entrySet()) {
+						
+						//this if state check to see if usernames are equal but device name are different.
+						
+						if(entry.getKey().username.equals(current.user.username) && !entry.getKey().device.equals(current.user.device)) {
+							
+							//create thread to send make new frame for destination user
+							System.out.println("Sending frame");
+							new Sender(new Frame(entry.getKey(), current.packet)).start();
+						}
+					}
 				}
 			}
-			
-			
-
-			
-			//create 4th threads
 		}
 	}
+	
+	/*
+	 * This class will take a packet and send it to this client listed within the frame
+	 */
 	public class Sender extends Thread{
 		Frame current;
 		Socket destination;
 		DataOutputStream out;
+		
+		
+		//Constructor just take the frame.
 		Sender(Frame a){
+			
+			//save current client that pack is being sent to used later aswell
 			current = a;
 			//get destination socket
-			destination = connected_users.get(current.name);
+			destination = connected_users.get(current.user);
 		}
+		
+		
+		
 		public void run() {
-			//create output using printwriter
-			 try {
+			
+			//create output stream
+			try {
 				out = new DataOutputStream(destination.getOutputStream());
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return;
 			}
+			//Write packet to client
 			try {
 				out.writeUTF(current.packet);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			/*send to all members in group*/
 		}
 	}
 

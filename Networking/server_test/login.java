@@ -1,3 +1,5 @@
+package com;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -14,7 +16,10 @@ public class login {
 	
 	//Send query to check username and password
 
-    final static String dbURL = "jdbc:mysql://localhost:3306/cse326";
+    final static String dbURL = "jdbc:mysql://localhost:3306/cse326"
+    +"?verifyServerCertificate=false"
+    +"&useSSL=false"
+    +"&requireSSL=false";
     final static String username = "server";
     final static String password = "2468135790";
 	
@@ -53,7 +58,8 @@ public class login {
 				try {
 					temp = in.readLine().split(" ");
 				*/	
-					String[] temp = {"bensonalec", "sample"};
+					//String[] temp = {"bensonalec", "sample"};
+					String[] temp = {"bensonale", "sample"};
 					System.out.println("username = " + temp[0]);
 					System.out.println("password = " + temp[1]);
 				//} catch (IOException e) {
@@ -62,7 +68,7 @@ public class login {
 				//}
 		        try {
 		            //LOAD PROPER DRIVERS
-		            Class.forName("com.mysql.cj.jdbc.Driver");
+		            Class.forName("com.mysql.jdbc.Driver");
 		            //MAKE A CONNECTION
 		            Connection connectionconnection = DriverManager.getConnection(dbURL, username, password);
 		            if(connectionconnection != null) {
@@ -73,18 +79,22 @@ public class login {
 		                PreparedStatement ps = connectionconnection.prepareStatement(userQuery);
 		                ps.setString(1, temp[0]);
 		                ps.setString(2, temp[1]);
-
+		                System.out.println("Executing query");
 		                ResultSet rs = ps.executeQuery();
 
-		                rs.afterLast();
-
+		                //rs.afterLast();
+/*
 		                if (rs.getRow() > 0){
 		                	// CORRECT LOGIN INFO
 		                	System.out.println("Password and Username Correct");
 		                }
-
+		                else {
+		                	System.out.println("First if failed");
+		                }
+*/
 		                //CHECKS IF THE QUERY WAS NULL OR NOT
 		                if(rs.next()) {
+		                	//THis means query is correct
 		                    //GETS THE USERNAME OF FIRST RETURNED ROW
 		                    System.out.println(rs.getString("UserName"));
 		                    System.out.println("Succesful query!");

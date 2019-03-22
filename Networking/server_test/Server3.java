@@ -1,3 +1,5 @@
+package com;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -51,9 +53,9 @@ public class Server3 {
 
 		
 	}
-	boolean verify(String username, String password) {
+	boolean verify(String use, String pass) {
 		//Clean this up eventually didn't want to mess with it until it was fully tested
-		String[] temp = {username, password};
+		String[] temp = {use, pass};
 		System.out.println("username = " + temp[0]);
 		System.out.println("password = " + temp[1]);
 
@@ -72,7 +74,7 @@ public class Server3 {
 		        ps.setString(2, temp[1]);
 		
 		        ResultSet rs = ps.executeQuery();
-		
+		/*
 		        rs.afterLast();
 		
 		        if (rs.getRow() > 0){
@@ -80,12 +82,13 @@ public class Server3 {
 		        	System.out.println("Password and Username Correct");
 		        	return true;
 		        }
-		
+		*/
 		        //CHECKS IF THE QUERY WAS NULL OR NOT
 		        if(rs.next()) {
 		            //GETS THE USERNAME OF FIRST RETURNED ROW
 		            System.out.println(rs.getString("UserName"));
 		            System.out.println("Succesful query!");
+		            return true;
 		        }
 		        //CLOSES STATEMENT
 		        ps.close();
@@ -157,8 +160,8 @@ public class Server3 {
 	 */
 	
 	public class Client {
-		String username;
-		String password;
+		String client;
+		String user_password;
 		String device;
 		String type;
 		
@@ -170,12 +173,12 @@ public class Server3 {
 			
 			//split on ascii 31
 			String[] temp = login.split(Character.toString((char) 31));
-			password = temp[2];
+			user_password = temp[2];
 			
 			//type is used to hold either LOGIN or REGISTRATION 
 			type = temp[0];
 			String[] temp2 = temp[1].split("@");
-			username = temp2[0];
+			client = temp2[0];
 			device = temp2[1];
 			
 		}
@@ -231,21 +234,21 @@ public class Server3 {
 					
 					
 					
-		//			if(verify(username, password)) { 
+				if(verify(current.client, current.user_password)) { 
 						//passed verification
 						
 						//Add new user to list of current connected users
 						connected_users.put(current, soc);
 						
 						//send accept frame
-						ack.writeUTF("SUCCESS" + Character.toString((char) 31) + current.username + "@" + current.device + Character.toString((char) 31) + "EncrytedPasswordServerRecieved");
-		//			}
-		//			else { 
-		//				//failed verification
+						ack.writeUTF("SUCCESS" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + "EncrytedPasswordServerRecieved");
+				}
+					else { 
+						//failed verification
 						
 						//send failure frame.
-		//				ack.writeUTF("FAILURE" + Character.toString((char) 31) + current.username + "@" + current.device + Character.toString((char) 31) + "EncrytedPasswordServerRecieved");
-		//			}
+						ack.writeUTF("FAILURE" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + "EncrytedPasswordServerRecieved");
+					}
 
 
 				} catch (IOException e) {
@@ -340,7 +343,7 @@ public class Server3 {
 						
 						//this if state check to see if usernames are equal but device name are different.
 						
-						if(entry.getKey().username.equals(current.user.username) && !entry.getKey().device.equals(current.user.device)) {
+						if(entry.getKey().client.equals(current.user.client) && !entry.getKey().device.equals(current.user.device)) {
 							
 							//create thread to send make new frame for destination user
 							System.out.println("Sending frame");

@@ -82,10 +82,15 @@ class window : public QObject
 
                 std::thread *connectionThread;
 
+        signals:
+                void login_successful();
+                void login_failure();
+
         private slots:
                 void closeTab(int i);
                 void sendNotif();
                 void readNotif();
                 void reconnect();
                 void login();
+                void reinitFeed();
 };

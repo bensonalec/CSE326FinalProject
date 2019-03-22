@@ -1,5 +1,3 @@
-package com;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -15,7 +13,10 @@ import java.sql.*;
 public class Server3 {
 	
 	//This is used for connection to jdbc
-    final static String dbURL = "jdbc:mysql://localhost:3306/cse326";
+    final static String dbURL = "jdbc:mysql://localhost:3306/cse326"
+    +"?verifyServerCertificate=false"
+    +"&useSSL=false"
+    +"&requireSSL=false";
     final static String username = "server";
     final static String password = "2468135790";
     

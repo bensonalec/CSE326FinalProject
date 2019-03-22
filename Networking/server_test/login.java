@@ -1,5 +1,3 @@
-package com;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -64,7 +62,7 @@ public class login {
 				//}
 		        try {
 		            //LOAD PROPER DRIVERS
-		            Class.forName("com.mysql.jdbc.Driver");
+		            Class.forName("com.mysql.cj.jdbc.Driver");
 		            //MAKE A CONNECTION
 		            Connection connectionconnection = DriverManager.getConnection(dbURL, username, password);
 		            if(connectionconnection != null) {

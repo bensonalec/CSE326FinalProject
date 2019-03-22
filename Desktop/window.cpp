@@ -5,7 +5,6 @@
 
 #include "window.h"
 
-
 /**
  * @brief      Constructs the main window of the application.
  *
@@ -268,20 +267,50 @@ void window::show(){
 void window::readNotif(){
         std::cout << "package recieved\n";
 
+        char sep = 31;
+
+        QString success("SUCCESS");
+        QString failure("FAILURE");
+
+        success.append(&sep);
+        success.append(uname_->text());
+        success.append("@");
+        success.append(systemInfo.machineHostName());
+        success.append(&sep);
+        success.append(pword_->text());
+
+        failure.append(&sep);
+        failure.append(uname_->text());
+        failure.append("@");
+        failure.append(systemInfo.machineHostName());
+        failure.append(&sep);
+        failure.append(pword_->text());
+
         QString buf = QString(sock->readLine());
 
-        QStringList l = buf.split("#");
 
-        QString device = l.takeFirst();
-        QString appName = l.takeFirst();
-        QString notifTitle = l.takeFirst();
-        QString notifBody = l.takeFirst();
+        if (!loggedIn && buf.startsWith(success, Qt::CaseSensitive)) {
+                loggedIn = true;
+                login_successful();
+        } else if (!loggedIn && buf.startsWith(failure, Qt::CaseSensitive)) {
+                loggedIn = false;
+                login_failure();
+        } else {
+                QStringList l = buf.split("#");
 
-        n = new notif(&notifTitle, &notifBody);
+                QString device = l.takeFirst();
+                QString appName = l.takeFirst();
+                QString notifTitle = l.takeFirst();
+                QString notifBody = l.takeFirst();
 
-        //n->setPosition();
+                n = new notif(&notifTitle, &notifBody);
 
-        n->show();
+                //n->setPosition();
+
+                n->show();
+        }
+
+        
 }
 
 
@@ -316,9 +345,6 @@ void window::reconnect(){
 
 /**
  * @brief      A function that sends a login request to the server
- *
- * @param[in]  uname  The username
- * @param[in]  pword  The password
  */
 void window::login(){
 
@@ -344,6 +370,16 @@ void window::login(){
         }
 }
 
+
+/**
+ * @brief      reinitializes the feed so that it doesnt ask for a login anymore.
+ */
+void window::reinitFeed(){
+        int index = center.indexOf(&Feed);
+        closeTab(index);
+        initFeed();
+        center.insertTab(index, &Feed, "Feed");
+}
 
 /**
  * @brief      Default notification constructor used for testing purposes

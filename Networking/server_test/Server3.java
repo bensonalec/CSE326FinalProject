@@ -16,13 +16,13 @@ import java.sql.*;
 public class Server3 {
 	
 	//This is used for connection to jdbc
-    final static String dbURL = "jdbc:mysql://localhost:3306/cse326"
-    +"?verifyServerCertificate=false"
-    +"&useSSL=false"
-    +"&requireSSL=false";
-    final static String username = "server";
-    final static String password = "2468135790";
-    
+	final static String dbURL = "jdbc:mysql://localhost:3306/cse326"
+	+"?verifyServerCertificate=false"
+	+"&useSSL=false"
+	+"&requireSSL=false";
+	final static String username = "server";
+	final static String password = "2468135790";
+	
     //Port number that the server will listen on
 	static int port = 5000;
 	
@@ -62,19 +62,19 @@ public class Server3 {
 
 		try {
 		    //LOAD PROPER DRIVERS
-		    Class.forName("com.mysql.jdbc.Driver");
+			Class.forName("com.mysql.jdbc.Driver");
 		    //MAKE A CONNECTION
-		    Connection connectionconnection = DriverManager.getConnection(dbURL, username, password);
-		    if(connectionconnection != null) {
-		        
+			Connection connectionconnection = DriverManager.getConnection(dbURL, username, password);
+			if(connectionconnection != null) {
+				
 		        //THE QUERY TO BE EXECUTED
-		        String userQuery = "SELECT * FROM Users WHERE UserName=? AND UserPassword=?;";
+				String userQuery = "SELECT * FROM Users WHERE UserName=? AND UserPassword=?;";
 		        //CREATE  A NEW STATEMENT
-		        PreparedStatement ps = connectionconnection.prepareStatement(userQuery);
-		        ps.setString(1, temp[0]);
-		        ps.setString(2, temp[1]);
-		
-		        ResultSet rs = ps.executeQuery();
+				PreparedStatement ps = connectionconnection.prepareStatement(userQuery);
+				ps.setString(1, temp[0]);
+				ps.setString(2, temp[1]);
+				
+				ResultSet rs = ps.executeQuery();
 		/*
 		        rs.afterLast();
 		
@@ -87,9 +87,9 @@ public class Server3 {
 		        //CHECKS IF THE QUERY WAS NULL OR NOT
 		        if(rs.next()) {
 		            //GETS THE USERNAME OF FIRST RETURNED ROW
-		            System.out.println(rs.getString("UserName"));
-		            System.out.println("Succesful query!");
-		            return true;
+		        	System.out.println(rs.getString("UserName"));
+		        	System.out.println("Succesful query!");
+		        	return true;
 		        }
 		        //CLOSES STATEMENT
 		        ps.close();
@@ -97,51 +97,51 @@ public class Server3 {
 		        rs.close();
 		        //CLOSES CONNECTION
 		        connectionconnection.close();
-		    }
-		    else {
-		        System.out.println("Failure!");
-		    	return false;
-		    }
-		} catch (ClassNotFoundException e) {
-		    throw new IllegalStateException("Cannot find the driver in the classpath!", e);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-		return false;
+		else {
+			System.out.println("Failure!");
+			return false;
+		}
+	} catch (ClassNotFoundException e) {
+		throw new IllegalStateException("Cannot find the driver in the classpath!", e);
+	} catch (SQLException e) {
+			// TODO Auto-generated catch block
+		e.printStackTrace();
 	}
-	void start_server(ServerSocket serv) {
+	return false;
+}
+void start_server(ServerSocket serv) {
 
 		//start each thread.
-		
+	
 		//Creates the 3 threads that will be always running in the server
-		Connector a = new Connector(serv);
-		Listener b = new Listener();
-		Grouper c = new Grouper();
-		
-		
+	Connector a = new Connector(serv);
+	Listener b = new Listener();
+	Grouper c = new Grouper();
+	
+	
 		//This shutdown hook will close the servers socket and all for while loops in the threads to break
-		Runtime.getRuntime().addShutdownHook(new Thread() 
-	    { 
-	      public void run() 
-	      { 
-	        try {
+	Runtime.getRuntime().addShutdownHook(new Thread() 
+	{ 
+		public void run() 
+		{ 
+			try {
 				serv.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-	        turnoff = false;
-	      } 
-	    }); 
+			turnoff = false;
+		} 
+	}); 
 
 		//Start the threads
-		System.out.println("Starting threads");
-		a.start();
-		b.start();
-		c.start();
-	}
-	
+	System.out.println("Starting threads");
+	a.start();
+	b.start();
+	c.start();
+}
+
 	/*
 	 * The Frame class is used to hold the Client and data packet that was either
 	 * sent from or is the destination depending on which thread it is in.
@@ -206,19 +206,8 @@ public class Server3 {
 					//accept new user.
 					soc = serv.accept();
 					System.out.println("Socket accepted");
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				//Get input stream
-				try {
-					in = new DataInputStream(soc.getInputStream());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 
-				try {
+					in = new DataInputStream(soc.getInputStream());
 					
 					//login format 
 					//"LOGIN" + Character.toString((char) 31) + "username@device" + Character.toString((char) 31) + "passwords");
@@ -238,34 +227,34 @@ public class Server3 {
 					
 					if(verify(current.client, current.user_password)) { 
 							//passed verification
-							
+						
 							//Add new user to list of current connected users
-							connected_users.put(current, soc);
-							
+						connected_users.put(current, soc);
+						
 							//send accept frame
-							System.out.println("SUCCESS" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
-							ack.writeUTF("SUCCESS" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
+						System.out.println("SUCCESS" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
+						ack.writeUTF("SUCCESS" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
 					}
-						else { 
+					else { 
 							//failed verification
-							
+						
 							//send failure frame.
-							System.out.println("FAILURE" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
-							ack.writeUTF("FAILURE" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
-						}
-	
-	
-					} catch(UTFDataFormatException a){
+						System.out.println("FAILURE" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
+						ack.writeUTF("FAILURE" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
+					}
+					
+					
+				} catch(UTFDataFormatException a){
 						//send request back because broken frame
 						//a.printStackTrace();
-						System.out.println("UTF data exception.");
-						continue;
-					}
-					catch (IOException e) {
+					System.out.println("UTF data exception.");
+					continue;
+				}
+				catch (IOException e) {
 						// TODO Auto-generated catch block
-						e.printStackTrace();
-	
-					}
+					e.printStackTrace();
+					
+				}
 
 			}
 			
@@ -289,43 +278,43 @@ public class Server3 {
 			/* also clean up closed sockets */
 
 			while(turnoff) {
-				  for (Entry<Client, Socket> entry : connected_users.entrySet()) {
-					  temp = entry.getValue();
-					  
-					  
+				for (Entry<Client, Socket> entry : connected_users.entrySet()) {
+					temp = entry.getValue();
+					
+					
 					  //remove socket if it is closed
-					  if(entry.getValue().isClosed()) {
-						  System.out.println("Removing device = " + entry.getKey().device);
-						  connected_users.remove(entry.getKey());
-					  }
-					  
+					if(entry.getValue().isClosed()) {
+						System.out.println("Removing device = " + entry.getKey().device);
+						connected_users.remove(entry.getKey());
+					}
+					
 					  //create new data input stream
-					  
-				      try {
-				    	  in = new DataInputStream(temp.getInputStream());
-				      } catch (IOException e1) {
+					
+					try {
+						in = new DataInputStream(temp.getInputStream());
+					} catch (IOException e1) {
 				    	  // TODO Auto-generated catch block
-				    	  e1.printStackTrace();
-				      }
-				    
+						e1.printStackTrace();
+					}
+					
 				      //Check if socket has info and if so push to stack
-				      
-				      try {
+					
+					try {
 				    	  //if string has line push notification on stack.
-				    	  if(in.available() != 0) {
-						      	System.out.println("Reading");
-						      	
+						if(in.available() != 0) {
+							System.out.println("Reading");
+							
 						      	//read in data
-						      	buf = in.readUTF();
+							buf = in.readUTF();
 						      	//push on stack to be sent
-						      	stack.add(new Frame(entry.getKey() ,buf));
-				    	  }
-				      } catch (IOException e) {
+							stack.add(new Frame(entry.getKey() ,buf));
+						}
+					} catch (IOException e) {
 						// TODO Auto-generated catch block
-				    	  e.printStackTrace();
-				      }
+						e.printStackTrace();
+					}
 
-				 }
+				}
 			}
 
 		}

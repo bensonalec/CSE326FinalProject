@@ -267,27 +267,24 @@ void window::show(){
 void window::readNotif(){
         std::cout << "package recieved\n";
 
-        char sep = 31;
-
         QString success("SUCCESS");
         QString failure("FAILURE");
 
-        success.append(&sep);
+        success.append(31);
         success.append(uname_->text());
         success.append("@");
         success.append(systemInfo.machineHostName());
-        success.append(&sep);
+        success.append(31);
         success.append(pword_->text());
 
-        failure.append(&sep);
+        failure.append(31);
         failure.append(uname_->text());
         failure.append("@");
         failure.append(systemInfo.machineHostName());
-        failure.append(&sep);
+        failure.append(31);
         failure.append(pword_->text());
 
-        QString buf = QString(sock->readLine());
-
+        QString buf = QString(sock->readAll());
 
         if (!loggedIn && buf.startsWith(success, Qt::CaseSensitive)) {
                 loggedIn = true;
@@ -349,25 +346,28 @@ void window::reconnect(){
 void window::login(){
 
         std::cout << "login attempted\n";
-        QString frameInfo = uname_->text();
-        frameInfo.append("@");
-        frameInfo.append(systemInfo.machineHostName());
 
-        QByteArray ba;
-        ba.insert (0, "LOGIN");
-        ba.append(31);
-        ba.append(frameInfo.toUtf8());
-        ba.append(31);
-        ba.append(QCryptographicHash::hash(pword_->text().toUtf8(), QCryptographicHash::Md5));
-        ba.append("\n");
+        QString frame("Login");
 
-        std::cout << ba.data() << "\n";
+        frame.append(31);
+        frame.append(uname_->text());
+        frame.append('@');
+        frame.append(systemInfo.machineHostName());
+        frame.append(31);
+        frame.append(QCryptographicHash::hash(pword_->text().toUtf8(), QCryptographicHash::Md5));
+        frame.append('\n');
+        
+        do {
+                sock->write(frame.toUtf8());
+                sock->flush();
 
-        if (sock && sock->state() == QAbstractSocket::ConnectedState){
-                if (sock->write(ba) == -1){
-                        std::cout << sock->error() << "\n";
-                }
-        }
+                sock->waitForBytesWritten();
+        } while (sock->isValid() && sock->bytesToWrite() > 0);
+
+        /*QDataStream out(sock);
+
+        out << frame.toUtf8();*/
+
 }
 
 

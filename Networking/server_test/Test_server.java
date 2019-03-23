@@ -16,7 +16,7 @@ public class Test_server {
 		while(a) {
 			try {
 				System.out.println("attemping connection");
-				soc = new Socket("localhost",5000);
+				soc = new Socket("jerry.cs.nmt.edu",5000);
 				a = false;
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block

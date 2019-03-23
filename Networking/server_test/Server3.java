@@ -3,6 +3,7 @@ package com;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.UTFDataFormatException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
@@ -221,11 +222,12 @@ public class Server3 {
 					
 					//login format 
 					//"LOGIN" + Character.toString((char) 31) + "username@device" + Character.toString((char) 31) + "passwords");
-
 					//also eventually use .startswith if statement to choose between LOGIN and REGISTER.
 					
 					
 					String temp = in.readUTF(); //reads in frame
+					
+					System.out.println(temp); //prints login frame.
 					
 					Client current = new Client(temp);
 					
@@ -234,27 +236,37 @@ public class Server3 {
 					
 					
 					
-				if(verify(current.client, current.user_password)) { 
-						//passed verification
-						
-						//Add new user to list of current connected users
-						connected_users.put(current, soc);
-						
-						//send accept frame
-						ack.writeUTF("SUCCESS" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + "EncrytedPasswordServerRecieved");
-				}
-					else { 
-						//failed verification
-						
-						//send failure frame.
-						ack.writeUTF("FAILURE" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + "EncrytedPasswordServerRecieved");
+					if(verify(current.client, current.user_password)) { 
+							//passed verification
+							
+							//Add new user to list of current connected users
+							connected_users.put(current, soc);
+							
+							//send accept frame
+							System.out.println("SUCCESS" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
+							ack.writeUTF("SUCCESS" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
+					}
+						else { 
+							//failed verification
+							
+							//send failure frame.
+							System.out.println("FAILURE" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
+							ack.writeUTF("FAILURE" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
+						}
+	
+	
+					} catch(UTFDataFormatException a){
+						//send request back because broken frame
+						//a.printStackTrace();
+						System.out.println("UTF data exception.");
+						continue;
+					}
+					catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+	
 					}
 
-
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 			}
 			
 			

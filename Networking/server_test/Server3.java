@@ -18,7 +18,8 @@ public class Server3 {
 	final static String dbURL = "jdbc:mysql://localhost:3306/cse326"
 	+"?verifyServerCertificate=false"
 	+"&useSSL=false"
-	+"&requireSSL=false";
+	+"&requireSSL=false"
+	+"&serverTimezone=UTC";
 	final static String username = "server";
 	final static String password = "2468135790";
 	
@@ -59,13 +60,19 @@ public class Server3 {
 		System.out.println("username = " + temp[0]);
 		System.out.println("password = " + temp[1]);
 
+		if (!temp[0].equals("testUser"))
+			System.out.println("Username wont match");
+
+		if (!temp[1].equals("testPassword"))
+			System.out.println("Password wont match");
+
 		try {
 		    //LOAD PROPER DRIVERS
 			Class.forName("com.mysql.cj.jdbc.Driver");
 		    //MAKE A CONNECTION
 			Connection connectionconnection = DriverManager.getConnection(dbURL, username, password);
 			if(connectionconnection != null) {
-				
+
 		        //THE QUERY TO BE EXECUTED
 				String userQuery = "SELECT * FROM Users WHERE UserName=? AND UserPassword=?;";
 		        //CREATE  A NEW STATEMENT
@@ -274,7 +281,7 @@ void start_server(ServerSocket serv) {
 			//split on ascii 31
 			System.out.println(login);
 			String[] temp = login.split(Character.toString((char) 31), 3);
-			user_password = temp[2];
+			user_password = temp[2].replace("\n", "");
 			
 			//type is used to hold either LOGIN or REGISTRATION 
 			type = temp[0];

@@ -247,11 +247,31 @@ void window::setupTrayIcon(QApplication* par) {
  * @brief      Sends a notification to the server
  */
 void window::sendNotif(){
-        if (sock->write("bensonalec@tmp#This is a test notification for testing purposes\n") == -1){
-                std::cout << sock->error() << "\n";
-        }
+        QString s("bensonalec@tmp");
+        s.append(31);
+        s.append("This is a test notification for testing purposes\n");
+        sendNotif(s);
 }
 
+/**
+ * @brief      Sends a notification to the server
+ */
+void window::sendNotif(QString s){
+        QDataStream out(sock);
+        do {
+                out << s.toUtf8().size();
+                sock->flush();
+
+                sock->waitForBytesWritten();
+        } while (sock->isValid() && sock->bytesToWrite() > 0);
+
+        do {
+                sock->write(s.toUtf8());
+                sock->flush();
+
+                sock->waitForBytesWritten();
+        } while (sock->isValid() && sock->bytesToWrite() > 0);
+}
 
 /**
  * @brief      Displays the core window
@@ -266,48 +286,59 @@ void window::show(){
  */
 void window::readNotif(){
         std::cout << "package recieved\n";
+        static bool sizeUsed = false;
+        static int numBytes;
 
-        QString success("SUCCESS");
-        QString failure("FAILURE");
+        QByteArray ba = sock->readAll();
 
-        success.append(31);
-        success.append(uname_->text());
-        success.append("@");
-        success.append(systemInfo.machineHostName());
-        success.append(31);
-        success.append(pword_->text());
+        QString buf(ba);
+        if (!sizeUsed){
+                QString success("SUCCESS");
+                QString failure("FAILURE");
 
-        failure.append(31);
-        failure.append(uname_->text());
-        failure.append("@");
-        failure.append(systemInfo.machineHostName());
-        failure.append(31);
-        failure.append(pword_->text());
+                success.append(31);
+                success.append(uname_->text());
+                success.append("@");
+                success.append(systemInfo.machineHostName());
+                success.append(31);
+                success.append(pword_->text());
 
-        QString buf = QString(sock->readAll());
+                failure.append(31);
+                failure.append(uname_->text());
+                failure.append("@");
+                failure.append(systemInfo.machineHostName());
+                failure.append(31);
+                failure.append(pword_->text());
 
-        if (!loggedIn && buf.startsWith(success, Qt::CaseSensitive)) {
-                loggedIn = true;
-                login_successful();
-        } else if (!loggedIn && buf.startsWith(failure, Qt::CaseSensitive)) {
-                loggedIn = false;
-                login_failure();
+                
+
+                if (!loggedIn && buf.startsWith(success, Qt::CaseSensitive)) {
+                        loggedIn = true;
+                        login_successful();
+                } else if (!loggedIn && buf.startsWith(failure, Qt::CaseSensitive)) {
+                        loggedIn = false;
+                        login_failure();
+                } else {
+                        QStringList l = buf.split("#");
+
+                        QString device = l.takeFirst();
+                        QString appName = l.takeFirst();
+                        QString notifTitle = l.takeFirst();
+                        QString notifBody = l.takeFirst();
+
+                        n = new notif(&notifTitle, &notifBody);
+
+                        //n->setPosition();
+
+                        n->show();
+                }
+                sizeUsed = true;
         } else {
-                QStringList l = buf.split("#");
+                sizeUsed = false;
 
-                QString device = l.takeFirst();
-                QString appName = l.takeFirst();
-                QString notifTitle = l.takeFirst();
-                QString notifBody = l.takeFirst();
+                numBytes = strtol(ba.data(), NULL, 10);
 
-                n = new notif(&notifTitle, &notifBody);
-
-                //n->setPosition();
-
-                n->show();
         }
-
-        
 }
 
 
@@ -347,27 +378,20 @@ void window::login(){
 
         std::cout << "login attempted\n";
 
-        QString frame("Login");
+        QString frame("LOGIN");
 
         frame.append(31);
         frame.append(uname_->text());
         frame.append('@');
         frame.append(systemInfo.machineHostName());
         frame.append(31);
-        frame.append(QCryptographicHash::hash(pword_->text().toUtf8(), QCryptographicHash::Md5));
+        frame.append(pword_->text());
+        //frame.append(QCryptographicHash::hash(pword_->text().toUtf8(), QCryptographicHash::Md5));
         frame.append('\n');
         
-        do {
-                sock->write(frame.toUtf8());
-                sock->flush();
+        sendNotif(frame);
 
-                sock->waitForBytesWritten();
-        } while (sock->isValid() && sock->bytesToWrite() > 0);
-
-        /*QDataStream out(sock);
-
-        out << frame.toUtf8();*/
-
+        QDataStream out(sock);
 }
 
 

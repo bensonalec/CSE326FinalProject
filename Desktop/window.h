@@ -89,6 +89,7 @@ class window : public QObject
         private slots:
                 void closeTab(int i);
                 void sendNotif();
+                void sendNotif(QString s);
                 void readNotif();
                 void reconnect();
                 void login();

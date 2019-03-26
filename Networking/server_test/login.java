@@ -1,5 +1,3 @@
-package com;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -17,9 +15,10 @@ public class login {
 	//Send query to check username and password
 
     final static String dbURL = "jdbc:mysql://localhost:3306/cse326"
-    +"?verifyServerCertificate=false"
-    +"&useSSL=false"
-    +"&requireSSL=false";
+	+"?verifyServerCertificate=false"
+	+"&useSSL=false"
+	+"&requireSSL=false"
+	+"&serverTimezone=UTC";
     final static String username = "server";
     final static String password = "2468135790";
 	
@@ -59,7 +58,7 @@ public class login {
 					temp = in.readLine().split(" ");
 				*/	
 					//String[] temp = {"bensonalec", "sample"};
-					String[] temp = {"bensonale", "sample"};
+					String[] temp = {"testUser", "testPassword"};
 					System.out.println("username = " + temp[0]);
 					System.out.println("password = " + temp[1]);
 				//} catch (IOException e) {
@@ -68,7 +67,7 @@ public class login {
 				//}
 		        try {
 		            //LOAD PROPER DRIVERS
-		            Class.forName("com.mysql.jdbc.Driver");
+		            Class.forName("com.mysql.cj.jdbc.Driver");
 		            //MAKE A CONNECTION
 		            Connection connectionconnection = DriverManager.getConnection(dbURL, username, password);
 		            if(connectionconnection != null) {

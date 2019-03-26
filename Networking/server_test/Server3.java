@@ -1,4 +1,3 @@
-package com;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -62,7 +61,7 @@ public class Server3 {
 
 		try {
 		    //LOAD PROPER DRIVERS
-			Class.forName("com.mysql.jdbc.Driver");
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		    //MAKE A CONNECTION
 			Connection connectionconnection = DriverManager.getConnection(dbURL, username, password);
 			if(connectionconnection != null) {
@@ -97,6 +96,90 @@ public class Server3 {
 		        rs.close();
 		        //CLOSES CONNECTION
 		        connectionconnection.close();
+			}
+			else {
+				System.out.println("Failure!");
+				return false;
+			}
+		} catch (ClassNotFoundException e) {
+			throw new IllegalStateException("Cannot find the driver in the classpath!", e);
+		} catch (SQLException e) {
+				// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+			return false;
+	}
+	
+	boolean register(String reg) {
+		//Clean this up eventually didn't want to mess with it until it was fully tested
+		
+		//registration variable.
+		String username;
+		String email;
+		String password;
+		String []parse = reg.split(Character.toString((char) 31));
+		
+		
+		//parse for registration below
+		//Frame = REGISTER(ASCII 31)UserName@DeviceName(ASCII 31)UserPassword(ASCII 31)UserEmail
+		username = parse[1].split("@")[0];
+		password = parse[2];
+		email = parse[3];
+		
+		
+		
+		//-----------------------------
+
+		try {
+		    //LOAD PROPER DRIVERS
+			Class.forName("com.mysql.jdbc.Driver");
+		    //MAKE A CONNECTION
+			Connection connectionconnection = DriverManager.getConnection(dbURL, username, password);
+			if(connectionconnection != null) {
+				
+		        //THE QUERY TO BE EXECUTED
+				//String userQuery = "SELECT * FROM Users WHERE UserName=? AND UserPassword=?;";
+		        //CREATE  A NEW STATEMENT
+				//ps.setString(1, temp[0]);
+				//ps.setString(2, temp[1]);
+				
+				PreparedStatement ps = connectionconnection.prepareStatement("insert into cse326.Users (UserName, UserEmail, UserPassword) values (?, ?, ?);");
+				ps.setString(1, username);
+				ps.setString(2, email);
+				ps.setString(3, password);
+				
+				//ps1 find the uid.
+				//ps2 insert the device the device table. ps1 then ps2.
+				
+				/*
+				PreparedStatement ps1 = connectionconnection.prepareStatement("Select UID from cse326.Users where UserName=?;");
+				ps1.setString(1, username);
+				PreparedStatement ps2 = connectionconnection.prepareStatement("insert into cse326.Devices (UID, DID, Device Name) values (?, ?, ?);");
+				*/
+				ResultSet rs = ps.executeQuery();
+				//ResultSet rs1 = ps1.executeQuery();
+				//ResultSet rs2 = ps2.executeQuery();
+		/*
+		        rs.afterLast();
+		
+		        if (rs.getRow() > 0){
+		        	// CORRECT LOGIN INFO
+		        	System.out.println("Password and Username Correct");
+		        	return true;
+		        }
+		*/
+		        //CHECKS IF THE QUERY WAS NULL OR NOT
+		        if(rs.next()) {
+		            //GETS THE USERNAME OF FIRST RETURNED ROW
+		        	System.out.println("Registration query!");
+		        	return true;
+		        }
+		        //CLOSES STATEMENT
+		        ps.close();
+		        //CLOSES RESULTSET
+		        rs.close();
+		        //CLOSES CONNECTION
+		        connectionconnection.close();
 		}
 		else {
 			System.out.println("Failure!");
@@ -110,6 +193,22 @@ public class Server3 {
 	}
 	return false;
 }
+	
+/*	
+boolean device_login() {
+	
+}
+
+boolean device_register() {
+	
+}
+*/	
+	
+/*
+ * Below will start the server and all threads.	
+ */
+	
+	
 void start_server(ServerSocket serv) {
 
 		//start each thread.
@@ -147,10 +246,10 @@ void start_server(ServerSocket serv) {
 	 * sent from or is the destination depending on which thread it is in.
 	 */
 	public class Frame {
-		String packet;
+		byte[] packet;
 		Client user;
-		Frame(Client name, String packet){
-			this.packet = packet;
+		Frame(Client name, byte[] buf){
+			this.packet = buf;
 			this.user = name;
 		}
 	}
@@ -173,7 +272,8 @@ void start_server(ServerSocket serv) {
 			//example frame format LOGIN(ascii 31)username@device(ascii 31)password
 			
 			//split on ascii 31
-			String[] temp = login.split(Character.toString((char) 31));
+			System.out.println(login);
+			String[] temp = login.split(Character.toString((char) 31), 3);
 			user_password = temp[2];
 			
 			//type is used to hold either LOGIN or REGISTRATION 
@@ -213,36 +313,52 @@ void start_server(ServerSocket serv) {
 					//"LOGIN" + Character.toString((char) 31) + "username@device" + Character.toString((char) 31) + "passwords");
 					//also eventually use .startswith if statement to choose between LOGIN and REGISTER.
 					
-					
-					String temp = in.readUTF(); //reads in frame
+					int size;
+					size = in.readInt();
+					byte[] temp = new byte[size];
+					in.read(temp); //reads in frame
 					
 					System.out.println(temp); //prints login frame.
 					
-					Client current = new Client(temp);
 					
 					DataOutputStream ack = new DataOutputStream(soc.getOutputStream());
 					
+					String temp2 = new String(temp, "UTF8");
 					
-					
-					
-					if(verify(current.client, current.user_password)) { 
+					if(temp2.startsWith("REGISTER")){
+						register(temp.toString());
+						//close connection.
+						soc.close();
+					}				
+					else {
+						Client current = new Client(temp2);
+
+					     if(verify(current.client, current.user_password)) { 
 							//passed verification
 						
-							//Add new user to list of current connected users
-						connected_users.put(current, soc);
-						
-							//send accept frame
-						System.out.println("SUCCESS" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
-						ack.writeUTF("SUCCESS" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
-					}
-					else { 
-							//failed verification
-						
-							//send failure frame.
-						System.out.println("FAILURE" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
-						ack.writeUTF("FAILURE" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password);
-					}
-					
+									//Add new user to list of current connected users
+								connected_users.put(current, soc);
+								
+									//send accept frame
+								
+								String success = "SUCCESS" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password;
+								
+								System.out.println(success);
+								ack.writeInt(success.length());
+								ack.write(success.getBytes());
+					     }
+					     else { 
+									//failed verification
+								
+									//send failure frame.
+								String fail = "FAILURE" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password;
+								
+								System.out.println(fail);
+								ack.writeInt(fail.length());
+								ack.write(fail.getBytes());
+								soc.close();
+							}
+				}
 					
 				} catch(UTFDataFormatException a){
 						//send request back because broken frame
@@ -271,7 +387,7 @@ void start_server(ServerSocket serv) {
 	public class Listener extends Thread{
 		Socket temp;
 		String username;
-		String buf;
+		byte[] buf;
 		DataInputStream in;
 		public void run() {
 			/* Need to go through sockets and check if new connection*/
@@ -289,31 +405,35 @@ void start_server(ServerSocket serv) {
 					}
 					
 					  //create new data input stream
-					
-					try {
-						in = new DataInputStream(temp.getInputStream());
-					} catch (IOException e1) {
-				    	  // TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					
-				      //Check if socket has info and if so push to stack
-					
-					try {
-				    	  //if string has line push notification on stack.
-						if(in.available() != 0) {
-							System.out.println("Reading");
-							
-						      	//read in data
-							buf = in.readUTF();
-						      	//push on stack to be sent
-							stack.add(new Frame(entry.getKey() ,buf));
+					else {
+						try {
+							in = new DataInputStream(temp.getInputStream());
+						} catch (IOException e1) {
+					    	  // TODO Auto-generated catch block
+							e1.printStackTrace();
 						}
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						
+					      //Check if socket has info and if so push to stack
+						
+						try {
+					    	  //if string has line push notification on stack.
+							if(in.available() != 0) {
+								System.out.println("Reading");
+								
+							      	//read in data
+								int size = in.readInt();
+								
+								buf = new byte[size];
+								
+								in.read(buf);
+							      	//push on stack to be sent
+								stack.add(new Frame(entry.getKey() ,buf));
+							}
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
-
 				}
 			}
 
@@ -348,7 +468,10 @@ void start_server(ServerSocket serv) {
 							
 							//create thread to send make new frame for destination user
 							System.out.println("Sending frame");
-							new Sender(new Frame(entry.getKey(), current.packet)).start();
+							//if we have weird issues were fail
+							if(!entry.getValue().isClosed()) {
+								new Sender(new Frame(entry.getKey(), current.packet)).start();
+							}
 						}
 					}
 				}
@@ -388,7 +511,8 @@ void start_server(ServerSocket serv) {
 			}
 			//Write packet to client
 			try {
-				out.writeUTF(current.packet);
+				out.writeInt(current.packet.length);
+				out.write(current.packet);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.UTFDataFormatException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -341,13 +342,13 @@ void start_server(ServerSocket serv) {
 							System.out.println("Registration complete");
 							String sec2 = "SUCCESS";
 							ack.writeInt(sec2.length());
-							ack.write(sec2.getBytes());
+							ack.write(sec2.getBytes(StandardCharsets.UTF_8));
 						}
 						else {
 							System.out.println("Registration failed");
 							String fal2 = "FAILURE";
 							ack.writeInt(fal2.length());
-							ack.write(fal2.getBytes());
+							ack.write(fal2.getBytes(StandardCharsets.UTF_8));
 						}
 						
 						soc.close();
@@ -367,7 +368,7 @@ void start_server(ServerSocket serv) {
 								
 								System.out.println(success);
 								ack.writeInt(success.length());
-								ack.write(success.getBytes());
+								ack.write(success.getBytes(StandardCharsets.UTF_8));
 					     }
 					     else { 
 									//failed verification
@@ -377,7 +378,7 @@ void start_server(ServerSocket serv) {
 								
 								System.out.println(fail);
 								ack.writeInt(fail.length());
-								ack.write(fail.getBytes());
+								ack.write(fail.getBytes(StandardCharsets.UTF_8));
 								soc.close();
 							}
 				}

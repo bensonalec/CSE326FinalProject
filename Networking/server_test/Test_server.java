@@ -35,7 +35,9 @@ public class Test_server {
 			e.printStackTrace();
 		}
 		try {
-			out.writeUTF("LOGIN" + Character.toString((char) 31) + "bensonalec@device1" + Character.toString((char) 31) + "sample");
+			String login = "LOGIN" + Character.toString((char) 31) + "alecbenson@device1" + Character.toString((char) 31) + "pass";
+			out.writeInt(login.length());
+			out.write(login.getBytes());
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -49,7 +51,7 @@ public class Test_server {
 			e.printStackTrace();
 		}
 		int i = 0;
-		while(i < 2) {
+		while(i < 5) {
 			try {
 				if(in.available() != 0) {
 					System.out.println(in.readUTF());

@@ -1,3 +1,5 @@
+package com;
+
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -60,19 +62,29 @@ public class Server3 {
 		System.out.println("username = " + temp[0]);
 		System.out.println("password = " + temp[1]);
 
+		/*
 		if (!temp[0].equals("testUser"))
 			System.out.println("Username wont match");
 
 		if (!temp[1].equals("testPassword"))
 			System.out.println("Password wont match");
+			*/
 
 		try {
 		    //LOAD PROPER DRIVERS
-			Class.forName("com.mysql.cj.jdbc.Driver");
+			Class.forName("com.mysql.jdbc.Driver");
 		    //MAKE A CONNECTION
 			Connection connectionconnection = DriverManager.getConnection(dbURL, username, password);
 			if(connectionconnection != null) {
-
+				
+				PreparedStatement tmp = connectionconnection.prepareStatement("SELECT UserPassword FROM Users WHERE UserName=?");
+				tmp.setString(1, temp[0]);
+				ResultSet tmpRs = tmp.executeQuery();
+				
+				tmpRs.next();
+				if (tmpRs.getString(1).equals(temp[1]))
+					System.out.println("Passwords dont match");
+				
 		        //THE QUERY TO BE EXECUTED
 				String userQuery = "SELECT * FROM Users WHERE UserName=? AND UserPassword=?;";
 		        //CREATE  A NEW STATEMENT
@@ -121,17 +133,20 @@ public class Server3 {
 		//Clean this up eventually didn't want to mess with it until it was fully tested
 		
 		//registration variable.
-		String username;
+		String user;
 		String email;
-		String password;
+		String pass;
 		String []parse = reg.split(Character.toString((char) 31));
 		
 		
 		//parse for registration below
 		//Frame = REGISTER(ASCII 31)UserName@DeviceName(ASCII 31)UserPassword(ASCII 31)UserEmail
-		username = parse[1].split("@")[0];
-		password = parse[2];
+		user = parse[1].split("@")[0];
+		pass = parse[2];
 		email = parse[3];
+		System.out.println("User = " + user);
+		System.out.println("pass = " + pass);
+		System.out.println("email =" + email);
 		
 		
 		
@@ -151,9 +166,9 @@ public class Server3 {
 				//ps.setString(2, temp[1]);
 				
 				PreparedStatement ps = connectionconnection.prepareStatement("insert into cse326.Users (UserName, UserEmail, UserPassword) values (?, ?, ?);");
-				ps.setString(1, username);
+				ps.setString(1, user);
 				ps.setString(2, email);
-				ps.setString(3, password);
+				ps.setString(3, pass);
 				
 				//ps1 find the uid.
 				//ps2 insert the device the device table. ps1 then ps2.
@@ -163,30 +178,15 @@ public class Server3 {
 				ps1.setString(1, username);
 				PreparedStatement ps2 = connectionconnection.prepareStatement("insert into cse326.Devices (UID, DID, Device Name) values (?, ?, ?);");
 				*/
-				ResultSet rs = ps.executeQuery();
-				//ResultSet rs1 = ps1.executeQuery();
-				//ResultSet rs2 = ps2.executeQuery();
-		/*
-		        rs.afterLast();
-		
-		        if (rs.getRow() > 0){
-		        	// CORRECT LOGIN INFO
-		        	System.out.println("Password and Username Correct");
-		        	return true;
-		        }
-		*/
-		        //CHECKS IF THE QUERY WAS NULL OR NOT
-		        if(rs.next()) {
-		            //GETS THE USERNAME OF FIRST RETURNED ROW
-		        	System.out.println("Registration query!");
-		        	return true;
-		        }
-		        //CLOSES STATEMENT
-		        ps.close();
-		        //CLOSES RESULTSET
-		        rs.close();
-		        //CLOSES CONNECTION
-		        connectionconnection.close();
+				//ResultSet rs;
+				if(ps.executeUpdate() != 0) {
+					ps.close();
+					return true;
+				}
+				else {
+					ps.close();
+					return false;
+				}
 		}
 		else {
 			System.out.println("Failure!");
@@ -332,9 +332,24 @@ void start_server(ServerSocket serv) {
 					
 					String temp2 = new String(temp, "UTF8");
 					
+					
+					
 					if(temp2.startsWith("REGISTER")){
-						register(temp.toString());
+						boolean reg = register(new String(temp, "UTF8"));
 						//close connection.
+						if(reg) {
+							System.out.println("Registration complete");
+							String sec2 = "SUCCESS";
+							ack.writeInt(sec2.length());
+							ack.write(sec2.getBytes());
+						}
+						else {
+							System.out.println("Registration failed");
+							String fal2 = "FAILURE";
+							ack.writeInt(fal2.length());
+							ack.write(fal2.getBytes());
+						}
+						
 						soc.close();
 					}				
 					else {
@@ -347,8 +362,8 @@ void start_server(ServerSocket serv) {
 								connected_users.put(current, soc);
 								
 									//send accept frame
-								
 								String success = "SUCCESS" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password;
+
 								
 								System.out.println(success);
 								ack.writeInt(success.length());

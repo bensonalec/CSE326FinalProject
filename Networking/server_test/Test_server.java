@@ -42,6 +42,15 @@ public class Test_server {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		
+		try {
+			String login = "Test test test test test";
+			out.writeInt(login.length());
+			out.write(login.getBytes());
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
 
 		try {

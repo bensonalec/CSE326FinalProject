@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class Test_server {
+public class Test_server2 {
 	public static void main(String[] args)  {
 		Socket soc = null;
 		Boolean a = true;
@@ -16,7 +16,7 @@ public class Test_server {
 		while(a) {
 			try {
 				System.out.println("attemping connection");
-				soc = new Socket("jerry.cs.nmt.edu",5000);
+				soc = new Socket("localhost",5000);
 				a = false;
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
@@ -35,23 +35,19 @@ public class Test_server {
 			e.printStackTrace();
 		}
 		try {
-			String login = "LOGIN" + Character.toString((char) 31) + "alecbenson@device1" + Character.toString((char) 31) + "pass";
-			out.writeInt(login.length());
-			out.write(login.getBytes());
+			//signin
+			out.writeUTF("LOGIN" + Character.toString((char) 31) + "bensonalec@device2" + Character.toString((char) 31) + "sample");
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		
+		//out.flush();
 		try {
-			String login = "Test test test test test";
-			out.writeInt(login.length());
-			out.write(login.getBytes());
+			out.writeUTF("test recieved\n");
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-
 
 		try {
 			in = new DataInputStream(soc.getInputStream());
@@ -59,12 +55,11 @@ public class Test_server {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		int i = 0;
-		while(i < 5) {
+		while(true) {
 			try {
 				if(in.available() != 0) {
 					System.out.println(in.readUTF());
-					i = i + 1;
+					break;
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -72,14 +67,7 @@ public class Test_server {
 			}
 
 		}
-		try {
-			soc.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
 		//socket connect
 	}
-
-
 }

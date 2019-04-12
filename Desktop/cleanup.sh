@@ -2,4 +2,4 @@
 
 make clean
 
-rm .qmake.stash Qt_Window Makefile
+rm -rf .qmake.stash Qt_Window Makefile Makefile.Debug Makefile.Release qt_window_plugin_import.cpp release/ debug/ Qt_Window.pro.user

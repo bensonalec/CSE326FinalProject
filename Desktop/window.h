@@ -63,6 +63,10 @@ class window : public QObject
                 QWidget Settings;
                 QWidget Feed;
 
+                QWidget Login;
+                QWidget Registration;
+                QWidget postLogin;
+
                 QSystemTrayIcon *sysIcon;
                 QIcon *trayIcon;
 
@@ -70,9 +74,13 @@ class window : public QObject
                 QGridLayout settingsLayout;
 
                 QGridLayout loginLayout;
+                QGridLayout registrationLayout;
+                QGridLayout postLoginLayout;
 
                 QLineEdit *uname_;
+                QLineEdit *email_;
                 QLineEdit *pword_;
+                QLineEdit *pword_rep_;
 
                 notif *n;
 
@@ -88,10 +96,19 @@ class window : public QObject
 
         private slots:
                 void closeTab(int i);
+                
                 void sendNotif();
                 void sendNotif(QString s);
                 void readNotif();
+                
                 void reconnect();
+
                 void login();
+                void register_();
+                
                 void reinitFeed();
+
+                void setupLogin();
+                void setupRegistration();
+                void setupPostLogin();
 };

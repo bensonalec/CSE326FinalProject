@@ -17,17 +17,23 @@ window::window(QApplication *par) {
 
         auto setupConnection_ = [this]() {this->setupConnection();};
 
-        connectionThread = new std::thread(setupConnection_);
-        //setupConnection();
+        // connectionThread = new std::thread(setupConnection_);
+        setupConnection();
 
         setupTrayIcon(par);
         setupMenuEntries();
         setupMenuBar();
         setupCenter();
+        setupRegistration();
+        setupPostLogin();
 
         initFeed();
 
         coreWin.setFixedSize(400, 400);
+
+        QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readNotif()));
+
+        QObject::connect(sock, SIGNAL(disconnected()), this, SLOT(reconnect()));
 }
 
 
@@ -77,9 +83,7 @@ void window::setupCenter(){
 
         center.setMovable(true);
 
-        openFeed();
-
-        initFeed();
+        setupLogin();
 
         QObject::connect(&center, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
@@ -180,52 +184,14 @@ void window::initSettings() {
  */
 void window::initFeed() {
 
-        if (!loggedIn){
 
-                QHBoxLayout *uLay = new QHBoxLayout();
-                QHBoxLayout *pLay = new QHBoxLayout();
-                QHBoxLayout *bLay = new QHBoxLayout();
+        QPushButton *qb = new QPushButton("Test");
 
-                QLabel *uname = new QLabel();
-                QLabel *pword = new QLabel();
+        QObject::connect(qb, SIGNAL(clicked()), this, SLOT(sendNotif()));
 
-                uname->setText("Username:");
-                pword->setText("Password:");
+        feedLayout.addWidget(qb, 0, 0, Qt::AlignLeft);
 
-                uname_ = new QLineEdit();
-                pword_ = new QLineEdit();
-
-                pword_->setEchoMode(QLineEdit::Password);
-
-                QPushButton *log_in = new QPushButton("Log in");
-                QPushButton *reg = new QPushButton("Register");
-
-                uLay->addWidget(uname, Qt::AlignRight);
-                uLay->addWidget(uname_, Qt::AlignLeft);
-
-                pLay->addWidget(pword, Qt::AlignRight);
-                pLay->addWidget(pword_, Qt::AlignLeft);
-
-                bLay->addWidget(log_in, Qt::AlignRight);
-                bLay->addWidget(reg, Qt::AlignLeft);
-
-                loginLayout.addLayout(uLay, 0, 0, Qt::AlignHCenter);
-                loginLayout.addLayout(pLay, 1, 0, Qt::AlignHCenter);
-                loginLayout.addLayout(bLay, 2, 0, Qt::AlignHCenter);
-
-                QObject::connect(log_in, SIGNAL(clicked()), this, SLOT(login()));
-
-                Feed.setLayout(&loginLayout);
-
-        } else {
-                QPushButton *qb = new QPushButton("Test");
-
-                QObject::connect(qb, SIGNAL(clicked()), this, SLOT(sendNotif()));
-
-                feedLayout.addWidget(qb, 0, 0, Qt::AlignLeft);
-
-                Feed.setLayout(&feedLayout);
-        }
+        Feed.setLayout(&feedLayout);
 
 
 }
@@ -257,6 +223,8 @@ void window::sendNotif(){
  * @brief      Sends a notification to the server
  */
 void window::sendNotif(QString s){
+        std::cout << s.toStdString() << '\n';
+
         QDataStream out(sock);
         do {
                 out << s.toUtf8().size();
@@ -285,60 +253,76 @@ void window::show(){
  * @brief      Reads the incoming notification data from the socket
  */
 void window::readNotif(){
+
+        sock->blockSignals(true);
+
         std::cout << "package recieved\n";
-        static bool sizeUsed = false;
-        static int numBytes;
 
-        QByteArray ba = sock->readAll();
+        QByteArray ba;
 
-        QString buf(ba);
-        if (!sizeUsed){
-                QString success("SUCCESS");
-                QString failure("FAILURE");
-
-                success.append(31);
-                success.append(uname_->text());
-                success.append("@");
-                success.append(systemInfo.machineHostName());
-                success.append(31);
-                success.append(pword_->text());
-
-                failure.append(31);
-                failure.append(uname_->text());
-                failure.append("@");
-                failure.append(systemInfo.machineHostName());
-                failure.append(31);
-                failure.append(pword_->text());
-
-                
-
-                if (!loggedIn && buf.startsWith(success, Qt::CaseSensitive)) {
-                        loggedIn = true;
-                        login_successful();
-                } else if (!loggedIn && buf.startsWith(failure, Qt::CaseSensitive)) {
-                        loggedIn = false;
-                        login_failure();
-                } else {
-                        QStringList l = buf.split("#");
-
-                        QString device = l.takeFirst();
-                        QString appName = l.takeFirst();
-                        QString notifTitle = l.takeFirst();
-                        QString notifBody = l.takeFirst();
-
-                        n = new notif(&notifTitle, &notifBody);
-
-                        //n->setPosition();
-
-                        n->show();
-                }
-                sizeUsed = true;
-        } else {
-                sizeUsed = false;
-
-                numBytes = strtol(ba.data(), NULL, 10);
-
+        do {
+                ba.append(sock->read(1));
+        } while (sock->bytesAvailable());
+        
+        for (int j = 0; j < ba.size(); j++){
+                std::cout << (int)ba.at(j) << ' ';
         }
+
+        std::cout << '\n';
+
+        while (ba.startsWith((char)0)){
+                ba = ba.remove(0, 1);
+        }
+
+        QString s(ba);
+
+        std::cout << s.toStdString() << '\n';
+
+        QString success("SUCCESS");
+        QString failure("FAILURE");
+        QString sms("SMS");
+
+
+        if (s.size() <= uname_->text().size()){
+
+        } else {
+
+                // TODO: Decrypt the message using md5
+
+                QStringList l = s.split((char)31);
+
+                QString type = l.takeFirst();
+
+                if (type.startsWith(success, Qt::CaseSensitive)){
+                        std::cout << "Login successful\n";
+                        loggedIn = true;
+                        int i;
+                        if ((i = center.indexOf(&Login)) != -1)
+                                closeTab(i);
+                } else if (type.startsWith(failure, Qt::CaseSensitive)){
+                        std::cout << "Login failed\n";
+                        loggedIn = false;
+                        // TODO: Inform the User that the login info was wrong
+                } else if (type.startsWith(sms, Qt::CaseSensitive)){
+                        std::cout << "SMS recieved\n";
+                        QStringList uAndD = l.takeFirst().split("@");
+                        QString userName = uAndD.takeFirst();
+                        QString deviceName = uAndD.takeFirst();
+                } else {
+                        std::cout << "Notification recieved\n";
+                        QStringList uAndD = l.takeFirst().split("@");
+                        QString userName = uAndD.takeFirst();
+                        QString deviceName = uAndD.takeFirst();
+                }
+
+                        
+        }
+
+        // n = new notif(&notifTitle, &notifBody);
+        //n->setPosition();
+        //n->show();
+
+        sock->blockSignals(false);
 }
 
 
@@ -349,11 +333,6 @@ void window::setupConnection(){
         sock = new QTcpSocket();
 
         reconnect();
-
-        QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readNotif()));
-
-        QObject::connect(sock, SIGNAL(disconnected()), this, SLOT(reconnect()));
-
 }
 
 
@@ -364,6 +343,7 @@ void window::reconnect(){
         do {
                 std::cout << "Waiting for connection to server\n";
                 sock->connectToHost("jerry.cs.nmt.edu", SERVER_PORT, QIODevice::ReadWrite);
+                // sock->connectToHost(QHostAddress::LocalHost, SERVER_PORT, QIODevice::ReadWrite);
                 sleep(2);
         } while (!sock->waitForConnected(5000));
 
@@ -390,8 +370,33 @@ void window::login(){
         frame.append('\n');
         
         sendNotif(frame);
+}
 
-        QDataStream out(sock);
+void window::register_(){
+        std::cout << "registration attempted\n";
+
+        if (pword_->text().size() == pword_rep_->text().size() || pword_->text().contains(pword_rep_->text())){
+                QString frame("REGISTER");
+
+                frame.append(31);
+                frame.append(uname_->text());
+                frame.append('@');
+                frame.append(systemInfo.machineHostName());
+                frame.append(31);
+                frame.append(pword_->text());
+                //frame.append(QCryptographicHash::hash(pword_->text().toUtf8(), QCryptographicHash::Md5));
+                frame.append(31);
+                frame.append(email_->text());
+                frame.append('\n');
+                
+                std::cout << "sending frame\n";
+
+                sendNotif(frame);
+                
+        } else {
+                std::cout << "Passwords dont match\n";
+        }
+        return;
 }
 
 
@@ -404,6 +409,103 @@ void window::reinitFeed(){
         initFeed();
         center.insertTab(index, &Feed, "Feed");
 }
+
+void window::setupLogin(){
+        QLabel *uname = new QLabel();
+        QLabel *pword = new QLabel();
+
+        uname->setText("Username:");
+        pword->setText("Password:");
+
+        uname_ = new QLineEdit();
+        pword_ = new QLineEdit();
+
+        pword_->setEchoMode(QLineEdit::Password);
+
+        QPushButton *log_in = new QPushButton("Log in");
+        QPushButton *reg = new QPushButton("Not a User?\nRegister");
+
+        loginLayout.addWidget(uname, 0, 0, Qt::AlignHCenter);
+        loginLayout.addWidget(uname_, 0, 1, Qt::AlignHCenter);
+        loginLayout.addWidget(pword, 1, 0, Qt::AlignHCenter);
+        loginLayout.addWidget(pword_, 1, 1, Qt::AlignHCenter);
+        loginLayout.addWidget(log_in, 4, 0, Qt::AlignHCenter);
+        loginLayout.addWidget(reg, 4, 1, Qt::AlignHCenter);
+
+        QObject::connect(log_in, SIGNAL(clicked()), this, SLOT(login()));
+
+        QObject::connect(reg, SIGNAL(clicked()), this, SLOT(setupRegistration()));
+
+        Login.setLayout(&loginLayout);
+
+        int i;
+        if ((i = center.indexOf(&Registration)) != -1)
+                closeTab(i);
+
+        center.addTab(&Login, "Login");
+        center.tabBar()->tabButton(center.indexOf(&Login), QTabBar::RightSide)->hide();
+}
+
+void window::setupRegistration(){
+        QLabel *uname = new QLabel();
+        QLabel *email = new QLabel();
+        QLabel *pword = new QLabel();
+        QLabel *pword_rep = new QLabel();
+
+        uname->setText("Username:");
+        email->setText("Email:");
+        pword->setText("Password:");
+        pword_rep->setText("Repeat Password:");
+
+        uname_ = new QLineEdit();
+        email_ = new QLineEdit();
+        pword_ = new QLineEdit();
+        pword_rep_ = new QLineEdit();
+
+        pword_->setEchoMode(QLineEdit::Password);
+        pword_rep_->setEchoMode(QLineEdit::Password);
+
+        QPushButton *log_in = new QPushButton("Already a user?\nLog in");
+        QPushButton *reg = new QPushButton("Register");
+
+        registrationLayout.addWidget(uname, 0, 0, Qt::AlignHCenter);
+        registrationLayout.addWidget(uname_, 0, 1, Qt::AlignHCenter);
+        registrationLayout.addWidget(email, 1, 0, Qt::AlignHCenter);
+        registrationLayout.addWidget(email_, 1, 1, Qt::AlignHCenter);
+        registrationLayout.addWidget(pword, 2, 0, Qt::AlignHCenter);
+        registrationLayout.addWidget(pword_, 2, 1, Qt::AlignHCenter);
+        registrationLayout.addWidget(pword_rep, 3, 0, Qt::AlignHCenter);
+        registrationLayout.addWidget(pword_rep_, 3, 1, Qt::AlignHCenter);
+        registrationLayout.addWidget(log_in, 4, 0, Qt::AlignHCenter);
+        registrationLayout.addWidget(reg, 4, 1, Qt::AlignHCenter);
+
+        QObject::connect(log_in, SIGNAL(clicked()), this, SLOT(setupLogin()));
+
+        QObject::connect(reg, SIGNAL(clicked()), this, SLOT(register_()));
+
+        Registration.setLayout(&registrationLayout);
+
+        int i;
+        if ((i = center.indexOf(&Login)) != -1)
+                closeTab(i);
+
+        center.addTab(&Registration, "Registration");
+        center.tabBar()->tabButton(center.indexOf(&Registration), QTabBar::RightSide)->hide();
+}
+
+void window::setupPostLogin(){
+
+        int i;
+/*        if ((i = center.indexOf(&Login)) != -1)
+                closeTab(i);
+
+        if ((i = center.indexOf(&Registration)) != -1)
+                closeTab(i);*/
+
+        openFeed();
+
+}
+
 
 /**
  * @brief      Default notification constructor used for testing purposes

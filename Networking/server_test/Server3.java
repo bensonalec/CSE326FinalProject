@@ -1,6 +1,3 @@
-package com;
-
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -83,7 +80,7 @@ public class Server3 {
 				ResultSet tmpRs = tmp.executeQuery();
 				
 				tmpRs.next();
-				if (tmpRs.getString(1).equals(temp[1]))
+				if (!tmpRs.getString(1).equals(temp[1]))
 					System.out.println("Passwords dont match");
 				
 		        //THE QUERY TO BE EXECUTED
@@ -342,12 +339,22 @@ void start_server(ServerSocket serv) {
 							System.out.println("Registration complete");
 							String sec2 = "SUCCESS";
 							ack.writeInt(sec2.length());
+							try {
+								Thread.sleep(2000);
+							} catch (InterruptedException ie){
+								
+							}
 							ack.write(sec2.getBytes(StandardCharsets.UTF_8));
 						}
 						else {
 							System.out.println("Registration failed");
 							String fal2 = "FAILURE";
 							ack.writeInt(fal2.length());
+							try {
+								Thread.sleep(2000);
+							} catch (InterruptedException ie){
+								
+							}
 							ack.write(fal2.getBytes(StandardCharsets.UTF_8));
 						}
 						
@@ -355,6 +362,9 @@ void start_server(ServerSocket serv) {
 					}				
 					else {
 						Client current = new Client(temp2);
+
+						System.out.println("uname: " + current.client);
+						System.out.println("pword: " + current.user_password);
 
 					     if(verify(current.client, current.user_password)) { 
 							//passed verification
@@ -367,7 +377,13 @@ void start_server(ServerSocket serv) {
 
 								
 								System.out.println(success);
+								System.out.println(success.length());
 								ack.writeInt(success.length());
+								try {
+									Thread.sleep(2000);
+								} catch (InterruptedException ie){
+									
+								}
 								ack.write(success.getBytes(StandardCharsets.UTF_8));
 					     }
 					     else { 
@@ -377,7 +393,13 @@ void start_server(ServerSocket serv) {
 								String fail = "FAILURE" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password;
 								
 								System.out.println(fail);
+								System.out.println(fail.length());
 								ack.writeInt(fail.length());
+								try {
+									Thread.sleep(2000);
+								} catch (InterruptedException ie){
+									
+								}
 								ack.write(fail.getBytes(StandardCharsets.UTF_8));
 								soc.close();
 							}
@@ -535,6 +557,11 @@ void start_server(ServerSocket serv) {
 			//Write packet to client
 			try {
 				out.writeInt(current.packet.length);
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException ie){
+					
+				}
 				out.write(current.packet);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

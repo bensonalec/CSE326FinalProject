@@ -213,10 +213,14 @@ void window::setupTrayIcon(QApplication* par) {
  * @brief      Sends a notification to the server
  */
 void window::sendNotif(){
-        QString s("bensonalec@tmp");
-        s.append(31);
-        s.append("This is a test notification for testing purposes\n");
-        sendNotif(s);
+        QString frame("");
+        frame.append(31);
+        frame.append(uname_->text());
+        frame.append('@');
+        frame.append(systemInfo.machineHostName());
+        frame.append(31);
+        frame.append("This is a test Notification for the server to redirect everywhere\n");
+        sendNotif(frame);
 }
 
 /**
@@ -256,7 +260,7 @@ void window::readNotif(){
 
         sock->blockSignals(true);
 
-        std::cout << "package recieved\n";
+        // std::cout << "package recieved\n";
 
         QByteArray ba;
 
@@ -264,11 +268,11 @@ void window::readNotif(){
                 ba.append(sock->read(1));
         } while (sock->bytesAvailable());
         
-        for (int j = 0; j < ba.size(); j++){
-                std::cout << (int)ba.at(j) << ' ';
-        }
+        // for (int j = 0; j < ba.size(); j++){
+        //         std::cout << (int)ba.at(j) << ' ';
+        // }
 
-        std::cout << '\n';
+        // std::cout << '\n';
 
         while (ba.startsWith((char)0)){
                 ba = ba.remove(0, 1);
@@ -276,7 +280,7 @@ void window::readNotif(){
 
         QString s(ba);
 
-        std::cout << s.toStdString() << '\n';
+        // std::cout << s.toStdString() << '\n';
 
         QString success("SUCCESS");
         QString failure("FAILURE");
@@ -284,7 +288,7 @@ void window::readNotif(){
 
 
         if (s.size() <= uname_->text().size()){
-
+                std::cout << "Too short of a package recieve\n";
         } else {
 
                 // TODO: Decrypt the message using md5
@@ -332,7 +336,12 @@ void window::readNotif(){
 void window::setupConnection(){
         sock = new QTcpSocket();
 
-        reconnect();
+        do {
+                std::cout << "Waiting for connection to server\n";
+                sock->connectToHost("jerry.cs.nmt.edu", SERVER_PORT, QIODevice::ReadWrite);
+                // sock->connectToHost(QHostAddress::LocalHost, SERVER_PORT, QIODevice::ReadWrite);
+                sleep(2);
+        } while (!sock->waitForConnected(5000));
 }
 
 
@@ -348,6 +357,8 @@ void window::reconnect(){
         } while (!sock->waitForConnected(5000));
 
         std::cout << "Connected to server\n";
+
+        login();
 }
 
 

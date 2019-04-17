@@ -8,25 +8,6 @@
 
 #include <unistd.h>
 
-class notif : public QObject {
-        Q_OBJECT
-
-public:
-        notif();
-        notif(QString *title, QString *msg);
-
-        void show();
-        void hide();
-        void setPosition(QPoint *p);
-        void setSize(int x, int y);
-        void setHTML(QString *title, QString *msg);
-
-private:
-        QTextEdit *win;
-        QString *tit;
-        QString *mes;
-
-};
 
 class window : public QObject
 {
@@ -37,66 +18,84 @@ class window : public QObject
                 window(QApplication *par);
                 void show();
 
-                bool loggedIn;
-
         private:
-                void setupMenuBar();
-                void setupMenuEntries();
-                void setupTabBar();
-                void setupCenter();
-                void setupTrayIcon(QApplication *par);
+
+                struct log_reg
+                {
+                        QDialog *coreWidget;
+                        QLabel *label;
+                        QPushButton *login_confirm_button;
+                        QLabel *label_2;
+                        QLabel *label_3;
+                        QLineEdit *login_u_in;
+                        QLineEdit *login_p_in;
+                        QLineEdit *reg_p_in;
+                        QLineEdit *reg_u_in;
+                        QLineEdit *reg_e_in;
+                        QLineEdit *reg_p_conf_in;
+                        QLabel *label_7;
+                        QLabel *label_9;
+                        QLabel *label_8;
+                        QLabel *label_10;
+                        QLabel *label_11;
+                        QPushButton *register_confirm_button;
+                };
+                
+                struct notif
+                {
+                        QDialog *coreWidget;
+                        QLabel *label;
+                        QLabel *notif_list;
+                        QLabel *label_3;
+                        QFont *font;
+                        QWidget *widget;
+                        QHBoxLayout *horizontalLayout;
+                        QSpacerItem *horizontalSpacer;
+                        QPushButton *pushButton;
+                        QSpacerItem *horizontalSpacer_3;
+                        QPushButton *clear_notif;
+                        QSpacerItem *horizontalSpacer_4;
+                        QPushButton *notif_close;
+                        QSpacerItem *horizontalSpacer_2;
+                        QWidget *widget1;
+                        QGridLayout *gridLayout_2;
+                        QSpacerItem *horizontalSpacer_5;
+                        QSpacerItem *horizontalSpacer_8;
+                        QSpacerItem *horizontalSpacer_9;
+                        QCheckBox *mute_checkBox;
+                        QLabel *label_7;
+                        QLineEdit *mute_time_minutes;
+                        QLineEdit *mute_time_seconds;
+                        QSpacerItem *horizontalSpacer_7;
+                        QLabel *label_4;
+                        QLabel *label_5;
+                        QSpacerItem *horizontalSpacer_10;
+                        QLineEdit *mute_time_hours;
+                        QLabel *label_6;
+                        QLabel *label_2;
+                        QSpacerItem *horizontalSpacer_6;
+                        QSpacerItem *horizontalSpacer_11;
+                };
+                
+                void setupLogReg(struct log_reg *ln);
+                void setupNotif(struct notif *n);
+
                 void setupConnection();
+                
+                struct log_reg *lr;
+                struct notif *no;
 
-                void openSettings();
-                void openFeed();
-
-                void initSettings();
-                void initFeed();
-
-                void quit();
-
-                QMainWindow coreWin;
-                QMenuBar menuBar;
-                QMenu *menuEntries;
-                QTabWidget center;
-
-                QWidget Settings;
-                QWidget Feed;
-
-                QWidget Login;
-                QWidget Registration;
-                QWidget postLogin;
-
-                QSystemTrayIcon *sysIcon;
-                QIcon *trayIcon;
-
-                QGridLayout feedLayout;
-                QGridLayout settingsLayout;
-
-                QGridLayout loginLayout;
-                QGridLayout registrationLayout;
-                QGridLayout postLoginLayout;
-
-                QLineEdit *uname_;
-                QLineEdit *email_;
-                QLineEdit *pword_;
-                QLineEdit *pword_rep_;
-
-                notif *n;
+                QMainWindow *core;
 
                 QTcpSocket *sock;
 
                 QSysInfo systemInfo;
-
-                std::thread *connectionThread;
 
         signals:
                 void login_successful();
                 void login_failure();
 
         private slots:
-                void closeTab(int i);
-                
                 void sendNotif();
                 void sendNotif(QString s);
                 void readNotif();
@@ -105,10 +104,4 @@ class window : public QObject
 
                 void login();
                 void register_();
-                
-                void reinitFeed();
-
-                void setupLogin();
-                void setupRegistration();
-                void setupPostLogin();
 };

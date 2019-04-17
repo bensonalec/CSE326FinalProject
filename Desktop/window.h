@@ -15,7 +15,7 @@ class window : public QObject
         Q_OBJECT
 
         public:
-                window(QApplication *par);
+                window();
                 void show();
 
         private:

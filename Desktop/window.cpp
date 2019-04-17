@@ -10,25 +10,21 @@
  *
  * @param      par   The parent application
  */
-window::window(QApplication *par) {
-
-        sock = new QTcpSocket();
-
-        setupConnection();
+window::window() {
 
         lr = new struct log_reg();
         no = new struct notif();
 
         setupLogReg(lr);
+        setupNotif(no);
 
         core = new QMainWindow();
 
+        // core->setMinimumSize(no->coreWidget->size());
+
         core->setCentralWidget(lr->coreWidget);
-        core->setFixedSize(lr->coreWidget->size());
-
-        QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readNotif()));
-
-        QObject::connect(sock, SIGNAL(disconnected()), this, SLOT(reconnect()));
+        // core->adjustSize();
+        core->resize(lr->coreWidget->size());
 }
 
 void window::setupLogReg(struct log_reg *ln){
@@ -98,10 +94,15 @@ void window::setupLogReg(struct log_reg *ln){
         ln->label_10->setText(QApplication::translate("login_register", "Enter Password", Q_NULLPTR));
         ln->label_11->setText(QApplication::translate("login_register", "Re-Enter Password", Q_NULLPTR));
         ln->register_confirm_button->setText(QApplication::translate("login_register", "Register", Q_NULLPTR));
+
+        QObject::connect(ln->login_confirm_button, SIGNAL(clicked()), this, SLOT(login()));
 }
 
 
 void window::setupNotif(struct notif *n){
+        if (!n->coreWidget)
+                n->coreWidget = new QDialog();
+
         n->coreWidget->resize(400, 400);
         n->label = new QLabel(n->coreWidget);
         n->label->setObjectName(QStringLiteral("label"));
@@ -289,7 +290,8 @@ void window::readNotif(){
                 if (type.startsWith(success, Qt::CaseSensitive)){
                         std::cout << "Login successful\n";
                         core->setCentralWidget(no->coreWidget);
-                        core->setFixedSize(no->coreWidget->size());
+                        core->adjustSize();
+                        core->resize(no->coreWidget->size());
                 } else if (type.startsWith(failure, Qt::CaseSensitive)){
                         std::cout << "Login failed\n";
                         // TODO: Inform the User that the login info was wrong
@@ -324,6 +326,11 @@ void window::setupConnection(){
                 // sock->connectToHost(QHostAddress::LocalHost, SERVER_PORT, QIODevice::ReadWrite);
                 sleep(2);
         } while (!sock->waitForConnected(5000));
+
+        QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readNotif()));
+
+        QObject::connect(sock, SIGNAL(disconnected()), this, SLOT(reconnect()));
+
 }
 
 
@@ -349,6 +356,8 @@ void window::reconnect(){
  */
 void window::login(){
 
+        setupConnection();
+
         std::cout << "login attempted\n";
 
         QString frame("LOGIN");
@@ -366,6 +375,9 @@ void window::login(){
 }
 
 void window::register_(){
+
+        setupConnection();
+
         std::cout << "registration attempted\n";
 
         if (lr->reg_p_in->text().size() == lr->reg_p_conf_in->text().size() && lr->reg_p_in->text().contains(lr->reg_p_conf_in->text())){

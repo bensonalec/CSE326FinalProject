@@ -19,6 +19,9 @@ public class Server5 {
     //Port number that the server will listen on
 	static int port = 5000;
 	
+	//Encryption key
+	String key = "sting to use for encryption";
+	
 	//This will map the client to its tcp  socket
 	Map<String, ConcurrentHashMap<Client, Socket>> connected_users = new ConcurrentHashMap<String, ConcurrentHashMap<Client, Socket>>();
 	
@@ -54,7 +57,7 @@ public class Server5 {
  */
 	
 	
-void start_server(ServerSocket serv) {
+	void start_server(ServerSocket serv) {
 
 		//start each thread.
 	
@@ -183,6 +186,7 @@ void start_server(ServerSocket serv) {
 								}
 								else {
 									connected_users.put(current.client, new ConcurrentHashMap<Client, Socket>());
+									connected_users.get(current.client).put(current, soc);
 									new Listener(current.client).start();
 								}
 								
@@ -268,11 +272,12 @@ void start_server(ServerSocket serv) {
 		}
 		
 		private void send_users(byte[] a, String b) {
+			System.out.print("Grouping");
 			for (Entry<Client, Socket> entry2 : connected_users.get(user).entrySet()) {
-				if(!b.equals(entry2.getKey().device)) {					
-					new Sender(new Frame(entry2.getKey(), a));					
+				if(!b.equals(entry2.getKey().device)) {	
+					System.out.println("Starting sender");
+					new Sender(new Frame(entry2.getKey(), a)).start();					
 				}
-
 			}
 		}
 		
@@ -281,26 +286,22 @@ void start_server(ServerSocket serv) {
 		public void run() {
 			/* Need to go through sockets and check if new connection*/
 			/* also clean up closed sockets */
+			System.out.println("Starting listener for user = " + user);
 
 			while(turnoff) {
 					if(connected_users.get(user).isEmpty()) {
 						connected_users.remove(user);
+						System.out.println("remover listener for user = " + user);
 						break;
 					}
 					
 				//for(Entry<String, ConcurrentHashMap<Client, Socket>> entry : connected_users.entrySet()) {
 					for (Entry<Client, Socket> entry2 : connected_users.get(user).entrySet()) {
 						temp = entry2.getValue();
-						
-						
-						  //remove socket if it is closed
-						if(entry2.getValue().isClosed()) {
-							System.out.println("Removing device = " + entry2.getKey().device);
-							connected_users.get(entry2.getKey().client).remove(entry2.getKey());
-						}
+					
 						
 						  //create new data input stream
-						else {
+						//else {
 							try {
 								in = new DataInputStream(temp.getInputStream());
 							} catch (IOException e1) {
@@ -317,19 +318,20 @@ void start_server(ServerSocket serv) {
 									
 								      	//read in data
 									int size = in.readInt();
-									
+									System.out.println("size to read" + size);
 									buf = new byte[size];
 									
 									in.read(buf);
 								      	//push on stack to be sent
 									//stack.add(new Frame(entry2.getKey() ,buf));
+									System.out.println("Size on input = " + buf.length);
 									send_users(buf, entry2.getKey().device);
 								}
 							} catch (IOException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-						}
+						//}
 					}
 				//}
 			}
@@ -365,12 +367,12 @@ void start_server(ServerSocket serv) {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				return;
+				//return;
 			}
 			//Write packet to client
 			try {
 				System.out.println( "Time = " + java.time.LocalTime.now() + "Packet =" + current.packet);
-
+				System.out.println(current.packet.length);
 				out.writeInt(current.packet.length);
 				try {
 					Thread.sleep(2000);

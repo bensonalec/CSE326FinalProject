@@ -9,15 +9,28 @@ import java.io.UTFDataFormatException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 
 public class Server5 {
 	
     //Port number that the server will listen on
 	static int port = 5000;
+	
+	public static KeyGenerator gen;
+
+	public static SecretKey sec;
 	
 	//Encryption key
 	String key = "sting to use for encryption";
@@ -32,8 +45,10 @@ public class Server5 {
 	volatile boolean turnoff = true;
 	
 	
-	public static void main(String[] arg) {
+	public static void main(String[] arg) throws NoSuchAlgorithmException {
 		ServerSocket s = null;
+		gen = KeyGenerator.getInstance("AES");
+		sec = gen.generateKey();
 		
 		//create server socket location of this may change
 		try {
@@ -88,6 +103,21 @@ public class Server5 {
 	//b.start();
 	//c.start();
 }
+	
+	private static byte [] encrypt(byte [] data, SecretKey sec) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+
+		Cipher ciph = Cipher.getInstance("AES");
+		ciph.init(Cipher.ENCRYPT_MODE, sec);
+		
+		return ciph.doFinal(data);	
+	}
+	
+	private static byte [] decrypt(byte [] data, SecretKey sec) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+		Cipher ciph = Cipher.getInstance("AES");
+		ciph.init(Cipher.DECRYPT_MODE, sec);
+		
+		return ciph.doFinal(data);
+	}
 
 
 
@@ -140,7 +170,14 @@ public class Server5 {
 					
 					DataOutputStream ack = new DataOutputStream(soc.getOutputStream());
 					
-					String temp_UTF = new String(temp, "UTF8");
+					String temp_UTF = null;
+					try {
+						temp_UTF = new String(decrypt(temp, sec), "UTF8");
+					} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+							| IllegalBlockSizeException | BadPaddingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					
 					
 					
@@ -157,7 +194,13 @@ public class Server5 {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-							ack.write(sec2.getBytes(StandardCharsets.UTF_8));
+							try {
+								ack.write(encrypt(sec2.getBytes(StandardCharsets.UTF_8), sec));
+							} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+									| IllegalBlockSizeException | BadPaddingException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						}
 						else {
 							System.out.println("Registration failed");
@@ -169,7 +212,13 @@ public class Server5 {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-							ack.write(fal2.getBytes(StandardCharsets.UTF_8));
+							try {
+								ack.write(encrypt(fal2.getBytes(StandardCharsets.UTF_8), sec));
+							} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+									| IllegalBlockSizeException | BadPaddingException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						}
 						
 						soc.close();
@@ -202,7 +251,13 @@ public class Server5 {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
-								ack.write(success.getBytes(StandardCharsets.UTF_8));
+								try {
+									ack.write(encrypt(success.getBytes(StandardCharsets.UTF_8),sec));
+								} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+										| IllegalBlockSizeException | BadPaddingException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
 					     }
 					     else { 
 									//failed verification
@@ -218,7 +273,13 @@ public class Server5 {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
-								ack.write(fail.getBytes(StandardCharsets.UTF_8));
+								try {
+									ack.write(encrypt(fail.getBytes(StandardCharsets.UTF_8), sec));
+								} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+										| IllegalBlockSizeException | BadPaddingException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
 								soc.close();
 						}
 				}
@@ -234,7 +295,13 @@ public class Server5 {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					ack.write(fail2.getBytes(StandardCharsets.UTF_8));
+					try {
+						ack.write(encrypt(fail2.getBytes(StandardCharsets.UTF_8), sec));
+					} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+							| IllegalBlockSizeException | BadPaddingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					soc.close();
 				}
 					

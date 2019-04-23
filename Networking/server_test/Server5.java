@@ -9,15 +9,31 @@ import java.io.UTFDataFormatException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 
 public class Server5 {
 	
     //Port number that the server will listen on
 	static int port = 5000;
+	
+	public static KeyGenerator gen;
+
+	public static SecretKey sec;
+	
+	//Encryption key
+	String key = "sting to use for encryption";
 	
 	//This will map the client to its tcp  socket
 	Map<String, ConcurrentHashMap<Client, Socket>> connected_users = new ConcurrentHashMap<String, ConcurrentHashMap<Client, Socket>>();
@@ -29,8 +45,10 @@ public class Server5 {
 	volatile boolean turnoff = true;
 	
 	
-	public static void main(String[] arg) {
+	public static void main(String[] arg) throws NoSuchAlgorithmException {
 		ServerSocket s = null;
+		gen = KeyGenerator.getInstance("AES");
+		sec = gen.generateKey();
 		
 		//create server socket location of this may change
 		try {
@@ -54,7 +72,7 @@ public class Server5 {
  */
 	
 	
-void start_server(ServerSocket serv) {
+	void start_server(ServerSocket serv) {
 
 		//start each thread.
 	
@@ -85,6 +103,21 @@ void start_server(ServerSocket serv) {
 	//b.start();
 	//c.start();
 }
+	
+	private static byte [] encrypt(byte [] data, SecretKey sec) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+
+		Cipher ciph = Cipher.getInstance("AES");
+		ciph.init(Cipher.ENCRYPT_MODE, sec);
+		
+		return ciph.doFinal(data);	
+	}
+	
+	private static byte [] decrypt(byte [] data, SecretKey sec) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+		Cipher ciph = Cipher.getInstance("AES");
+		ciph.init(Cipher.DECRYPT_MODE, sec);
+		
+		return ciph.doFinal(data);
+	}
 
 
 
@@ -137,7 +170,14 @@ void start_server(ServerSocket serv) {
 					
 					DataOutputStream ack = new DataOutputStream(soc.getOutputStream());
 					
-					String temp_UTF = new String(temp, "UTF8");
+					String temp_UTF = null;
+					try {
+						temp_UTF = new String(decrypt(temp, sec), "UTF8");
+					} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+							| IllegalBlockSizeException | BadPaddingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					
 					
 					
@@ -154,7 +194,13 @@ void start_server(ServerSocket serv) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-							ack.write(sec2.getBytes(StandardCharsets.UTF_8));
+							try {
+								ack.write(encrypt(sec2.getBytes(StandardCharsets.UTF_8), sec));
+							} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+									| IllegalBlockSizeException | BadPaddingException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						}
 						else {
 							System.out.println("Registration failed");
@@ -166,7 +212,13 @@ void start_server(ServerSocket serv) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-							ack.write(fal2.getBytes(StandardCharsets.UTF_8));
+							try {
+								ack.write(encrypt(fal2.getBytes(StandardCharsets.UTF_8), sec));
+							} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+									| IllegalBlockSizeException | BadPaddingException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						}
 						
 						soc.close();
@@ -183,6 +235,7 @@ void start_server(ServerSocket serv) {
 								}
 								else {
 									connected_users.put(current.client, new ConcurrentHashMap<Client, Socket>());
+									connected_users.get(current.client).put(current, soc);
 									new Listener(current.client).start();
 								}
 								
@@ -198,7 +251,13 @@ void start_server(ServerSocket serv) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
-								ack.write(success.getBytes(StandardCharsets.UTF_8));
+								try {
+									ack.write(encrypt(success.getBytes(StandardCharsets.UTF_8),sec));
+								} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+										| IllegalBlockSizeException | BadPaddingException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
 					     }
 					     else { 
 									//failed verification
@@ -214,7 +273,13 @@ void start_server(ServerSocket serv) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
-								ack.write(fail.getBytes(StandardCharsets.UTF_8));
+								try {
+									ack.write(encrypt(fail.getBytes(StandardCharsets.UTF_8), sec));
+								} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+										| IllegalBlockSizeException | BadPaddingException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
 								soc.close();
 						}
 				}
@@ -230,7 +295,13 @@ void start_server(ServerSocket serv) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					ack.write(fail2.getBytes(StandardCharsets.UTF_8));
+					try {
+						ack.write(encrypt(fail2.getBytes(StandardCharsets.UTF_8), sec));
+					} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+							| IllegalBlockSizeException | BadPaddingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					soc.close();
 				}
 					
@@ -268,11 +339,12 @@ void start_server(ServerSocket serv) {
 		}
 		
 		private void send_users(byte[] a, String b) {
+			System.out.print("Grouping");
 			for (Entry<Client, Socket> entry2 : connected_users.get(user).entrySet()) {
-				if(!b.equals(entry2.getKey().device)) {					
-					new Sender(new Frame(entry2.getKey(), a));					
+				if(!b.equals(entry2.getKey().device)) {	
+					System.out.println("Starting sender");
+					new Sender(new Frame(entry2.getKey(), a)).start();					
 				}
-
 			}
 		}
 		
@@ -281,26 +353,22 @@ void start_server(ServerSocket serv) {
 		public void run() {
 			/* Need to go through sockets and check if new connection*/
 			/* also clean up closed sockets */
+			System.out.println("Starting listener for user = " + user);
 
 			while(turnoff) {
 					if(connected_users.get(user).isEmpty()) {
 						connected_users.remove(user);
+						System.out.println("remover listener for user = " + user);
 						break;
 					}
 					
 				//for(Entry<String, ConcurrentHashMap<Client, Socket>> entry : connected_users.entrySet()) {
 					for (Entry<Client, Socket> entry2 : connected_users.get(user).entrySet()) {
 						temp = entry2.getValue();
-						
-						
-						  //remove socket if it is closed
-						if(entry2.getValue().isClosed()) {
-							System.out.println("Removing device = " + entry2.getKey().device);
-							connected_users.get(entry2.getKey().client).remove(entry2.getKey());
-						}
+					
 						
 						  //create new data input stream
-						else {
+						//else {
 							try {
 								in = new DataInputStream(temp.getInputStream());
 							} catch (IOException e1) {
@@ -317,19 +385,20 @@ void start_server(ServerSocket serv) {
 									
 								      	//read in data
 									int size = in.readInt();
-									
+									System.out.println("size to read" + size);
 									buf = new byte[size];
 									
 									in.read(buf);
 								      	//push on stack to be sent
 									//stack.add(new Frame(entry2.getKey() ,buf));
+									System.out.println("Size on input = " + buf.length);
 									send_users(buf, entry2.getKey().device);
 								}
 							} catch (IOException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-						}
+						//}
 					}
 				//}
 			}
@@ -365,12 +434,12 @@ void start_server(ServerSocket serv) {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				return;
+				//return;
 			}
 			//Write packet to client
 			try {
 				System.out.println( "Time = " + java.time.LocalTime.now() + "Packet =" + current.packet);
-
+				System.out.println(current.packet.length);
 				out.writeInt(current.packet.length);
 				try {
 					Thread.sleep(2000);

@@ -16,8 +16,6 @@ import java.sql.SQLException;
 
 public class Client {
 	
-	//catch sql exeption and if return bad login.
-	
 		
 		//This is used for connection to jdbc
 		final static String dbURL = "jdbc:mysql://localhost:3306/cse326"
@@ -27,13 +25,13 @@ public class Client {
 		+"&serverTimezone=UTC";
 		final static String username = "server";
 		final static String password = "2468135790";
-	
-	
-		String client;
-		String user_password;
-		String device;
-		String type;
-		String register;
+		
+		
+		String client; //username of the client
+		String user_password; //password
+		String device; //type of device
+		String type; //what type of login this is
+		String register; //string used for registration
 		
 		//Constructor for client which parses LOGIN frame to get information. 
 		//May need to be changed at some point to work with registration frame.
@@ -92,7 +90,7 @@ public class Client {
 					ResultSet tmpRs = tmp.executeQuery();
 					
 					tmpRs.next();
-					if (tmpRs.getString(1).equals(temp[1]))
+					if (!tmpRs.getString(1).equals(temp[1]))
 						System.out.println("Passwords dont match");
 					
 			        //THE QUERY TO BE EXECUTED

@@ -13,21 +13,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 
 
 public class Server5 {
 	
     //Port number that the server will listen on
 	static int port = 5000;
-	
-	public static KeyGenerator gen;
-
-	public static SecretKey sec;
-	
-	//Encryption key
-	String key = "sting to use for encryption";
 	
 	//This will map the client to its tcp  socket
 	Map<String, ConcurrentHashMap<Client, Socket>> connected_users = new ConcurrentHashMap<String, ConcurrentHashMap<Client, Socket>>();
@@ -42,7 +33,7 @@ public class Server5 {
 	public static void main(String[] arg) throws NoSuchAlgorithmException {
 		ServerSocket s = null;
 		
-		//create server socket location of this may change
+		//Create server socket
 		try {
 			s = new ServerSocket(port);
 		} catch (IOException e1) {
@@ -66,15 +57,12 @@ public class Server5 {
 	
 	void start_server(ServerSocket serv) {
 
-		//start each thread.
-	
-		//Creates the 3 threads that will be always running in the server
+	//creates thread that will handle new connections to server
 	Connector a = new Connector(serv);
-	//Listener b = new Listener();
-	//Grouper c = new Grouper();
+
 	
 	
-		//This shutdown hook will close the servers socket and all for while loops in the threads to break
+	//This shutdown hook will close the servers socket and all for while loops in the threads to break
 	Runtime.getRuntime().addShutdownHook(new Thread() 
 	{ 
 		public void run() 
@@ -89,11 +77,9 @@ public class Server5 {
 		} 
 	}); 
 
-		//Start the threads
+	//Start the threads
 	System.out.println("Starting threads");
 	a.start();
-	//b.start();
-	//c.start();
 }
 
 
@@ -133,6 +119,9 @@ public class Server5 {
 					
 					int size;
 					byte[] temp;
+					
+					//read in initial login/register frame for new user.
+					
 					try {
 						size = in.readInt();
 						temp = new byte[size];
@@ -153,7 +142,8 @@ public class Server5 {
 					
 					if(temp_UTF.startsWith("REGISTER")){
 						Client reg_user = new Client(temp);
-						//close connection.
+
+						//attempt to register user.
 						if(reg_user.register()) {
 							System.out.println("Registration complete");
 							String sec2 = "SUCCESS";
@@ -164,7 +154,7 @@ public class Server5 {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-
+							//send success frame
 							ack.write(sec2.getBytes(StandardCharsets.UTF_8));
 
 						}
@@ -178,30 +168,33 @@ public class Server5 {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-
+							//send failure frame
 							ack.write(fal2.getBytes(StandardCharsets.UTF_8));
 
 						}
-						
+						//close socket after registration so that the user can login. No auto login on registration.
 						soc.close();
 					}				
 					else if(temp_UTF.startsWith("LOGIN")){
 						Client current = new Client(temp_UTF);
-
+						 //check if usernamea and password are true.
 					     if(current.verify()) { 
 							//passed verification
 						
 									//Add new user to list of current connected users
 								if(connected_users.containsKey(current.client)) {
+									//if username thread/entry in hashmap already created then just add to hashmap
 									connected_users.get(current.client).put(current, soc);
 								}
 								else {
+									//Create new map for this username
 									connected_users.put(current.client, new ConcurrentHashMap<Client, Socket>());
 									connected_users.get(current.client).put(current, soc);
+									//start listener thread for this username
 									new Listener(current.client).start();
 								}
 								
-									//send accept frame
+								//send accept frame
 								String success = "SUCCESS" + Character.toString((char) 31) + current.client + "@" + current.device + Character.toString((char) 31) + current.user_password;
 
 								
@@ -213,6 +206,7 @@ public class Server5 {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
+								//send success frame
 								ack.write(success.getBytes(StandardCharsets.UTF_8));
 
 					     }
@@ -230,9 +224,9 @@ public class Server5 {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
-
+								//send failure frame
 								ack.write(fail.getBytes(StandardCharsets.UTF_8));
-
+								//close connection
 								soc.close();
 						}
 				}
@@ -289,9 +283,12 @@ public class Server5 {
 		
 		private void send_users(byte[] a, String b) {
 			System.out.print("Grouping");
+			
+			//creates sending thread for all users in group other that itself
 			for (Entry<Client, Socket> entry2 : connected_users.get(user).entrySet()) {
 				if(!b.equals(entry2.getKey().device)) {	
 					System.out.println("Starting sender");
+					//thread to send frame
 					new Sender(new Frame(entry2.getKey(), a)).start();					
 				}
 			}
@@ -300,58 +297,56 @@ public class Server5 {
 		
 		
 		public void run() {
-			/* Need to go through sockets and check if new connection*/
-			/* also clean up closed sockets */
+			/* Goes through sockets and check if new connection*/
+			/* also cleans up closed sockets */
 			System.out.println("Starting listener for user = " + user);
 
 			while(turnoff) {
-					if(connected_users.get(user).isEmpty()) {
-						connected_users.remove(user);
-						System.out.println("remover listener for user = " + user);
-						break;
+				
+				//this handles cleanup if all clients signed out from this username.
+				if(connected_users.get(user).isEmpty()) {
+					connected_users.remove(user);
+					System.out.println("remover listener for user = " + user);
+					break;
+				}
+				
+				for (Entry<Client, Socket> entry2 : connected_users.get(user).entrySet()) {
+					temp = entry2.getValue();
+				
+					
+					  //create new data input stream
+					try {
+						in = new DataInputStream(temp.getInputStream());
+					} catch (IOException e1) {
+				    	  // TODO Auto-generated catch block
+						e1.printStackTrace();
 					}
 					
-				//for(Entry<String, ConcurrentHashMap<Client, Socket>> entry : connected_users.entrySet()) {
-					for (Entry<Client, Socket> entry2 : connected_users.get(user).entrySet()) {
-						temp = entry2.getValue();
+				      //Check if socket has info and if so push to stack
 					
+					try {
+				    	  //if string has line push notification on stack.
+						if(in.available() != 0) {
+							System.out.println("Reading");
+							
+						      	//read in data
+							int size = in.readInt();
+							System.out.println("size to read" + size);
+							buf = new byte[size];
+							
+							in.read(buf);
 						
-						  //create new data input stream
-						//else {
-							try {
-								in = new DataInputStream(temp.getInputStream());
-							} catch (IOException e1) {
-						    	  // TODO Auto-generated catch block
-								e1.printStackTrace();
-							}
+							System.out.println("Size on input = " + buf.length);
 							
-						      //Check if socket has info and if so push to stack
-							
-							try {
-						    	  //if string has line push notification on stack.
-								if(in.available() != 0) {
-									System.out.println("Reading");
-									
-								      	//read in data
-									int size = in.readInt();
-									System.out.println("size to read" + size);
-									buf = new byte[size];
-									
-									in.read(buf);
-								      	//push on stack to be sent
-									//stack.add(new Frame(entry2.getKey() ,buf));
-									System.out.println("Size on input = " + buf.length);
-									send_users(buf, entry2.getKey().device);
-								}
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-						//}
+							//send to function to create sending threads to other clients logged in with this username
+							send_users(buf, entry2.getKey().device);
+						}
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-				//}
+				}
 			}
-
 		}
 	}
 	
@@ -399,6 +394,10 @@ public class Server5 {
 				out.write(current.packet);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
+				
+				//This means that the connection is closed. Then we must remove client from its usernamehashmap
+				//part of cleanup process
+				
 				System.out.println("Removing device = " + current.user.device);
 				connected_users.get(current.user.client).remove(current.user);
 			}

@@ -9,8 +9,8 @@ package com;
 
 
 public class Frame {
-	byte[] packet;
-	Client user;
+	byte[] packet; //data sent from clients
+	Client user; //client information
 	Frame(Client name, byte[] buf){
 		this.packet = buf;
 		this.user = name;

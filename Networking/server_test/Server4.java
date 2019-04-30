@@ -3,10 +3,12 @@ package com;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.UTFDataFormatException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -121,10 +123,17 @@ void start_server(ServerSocket serv) {
 					//"LOGIN" + Character.toString((char) 31) + "username@device" + Character.toString((char) 31) + "passwords");
 					//also eventually use .startswith if statement to choose between LOGIN and REGISTER.
 					
-					int size;
-					size = in.readInt();
-					byte[] temp = new byte[size];
-					in.read(temp); //reads in frame
+						int size;
+						byte[] temp;
+					try {
+						size = in.readInt();
+						temp = new byte[size];
+						in.read(temp); //reads in frame
+					}
+					catch(EOFException e) {
+						continue;
+					}
+					
 					
 					System.out.println(temp); //prints login frame.
 					
@@ -234,15 +243,16 @@ void start_server(ServerSocket serv) {
 					System.out.println("UTF data exception.");
 					continue;
 				}
+				catch (SocketException e) {
+					//e.printStackTrace();	
+					continue;
+				}
 				catch (IOException e) {
 						// TODO Auto-generated catch block
-					e.printStackTrace();
-					
+					e.printStackTrace();	
 				}
 
-			}
-			
-			
+			}			
 		}
 	}
 	
@@ -266,47 +276,54 @@ void start_server(ServerSocket serv) {
 
 			while(turnoff) {
 				//for(Entry<String, ConcurrentHashMap<Client, Socket>> entry : connected_users.entrySet()) {
+				
+					/*
+					 * If this is empty kill thread.
+					 */
+				
+				
+					//if(connected_users.get(user).isEmpty()) {
+					//	return;
+					//}
+				
 					for (Entry<Client, Socket> entry2 : connected_users.get(user).entrySet()) {
 						temp = entry2.getValue();
+					
 						
 						
-						  //remove socket if it is closed
-						if(entry2.getValue().isClosed()) {
-							System.out.println("Removing device = " + entry2.getKey().device);
-							connected_users.get(entry2.getKey().client).remove(entry2.getKey());
+					  //create new data input stream
+						try {
+							in = new DataInputStream(temp.getInputStream());
+						} catch (IOException e1) {
+					    	  // TODO Auto-generated catch block
+							e1.printStackTrace();
 						}
 						
-						  //create new data input stream
-						else {
-							try {
-								in = new DataInputStream(temp.getInputStream());
-							} catch (IOException e1) {
-						    	  // TODO Auto-generated catch block
-								e1.printStackTrace();
+					      //Check if socket has info and if so push to stack
+						
+						try {
+					    	  //if string has line push notification on stack.
+							//in.mark(2000);
+							//if(in.read() != -1) {
+							//	in.reset();
+							if(in.available() != 0) {
+								System.out.println("Reading");
+								
+							      	//read in data
+								int size = in.readInt();
+								
+								buf = new byte[size];
+								
+								in.read(buf);
+							      	//push on stack to be sent
+								System.out.println(buf);
+								stack.add(new Frame(entry2.getKey() ,buf));
 							}
-							
-						      //Check if socket has info and if so push to stack
-							
-							try {
-						    	  //if string has line push notification on stack.
-								if(in.available() != 0) {
-									System.out.println("Reading");
-									
-								      	//read in data
-									int size = in.readInt();
-									
-									buf = new byte[size];
-									
-									in.read(buf);
-								      	//push on stack to be sent
-									stack.add(new Frame(entry2.getKey() ,buf));
-								}
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
-					}
+				}
 				//}
 			}
 
@@ -384,8 +401,12 @@ void start_server(ServerSocket serv) {
 				e.printStackTrace();
 				return;
 			}
+			
+
+			
 			//Write packet to client
 			try {
+				System.out.println( "Time = " + java.time.LocalTime.now() + "Packet =" + current.packet);
 				out.writeInt(current.packet.length);
 				try {
 					Thread.sleep(2000);
@@ -396,7 +417,8 @@ void start_server(ServerSocket serv) {
 				out.write(current.packet);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println("Removing device = " + current.user.device);
+				connected_users.get(current.user.client).remove(current.user);
 			}
 		}
 	}

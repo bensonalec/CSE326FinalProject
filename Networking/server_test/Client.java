@@ -15,6 +15,8 @@ import java.sql.SQLException;
 
 
 public class Client {
+	
+		
 		//This is used for connection to jdbc
 		final static String dbURL = "jdbc:mysql://localhost:3306/cse326"
 		+"?verifyServerCertificate=false"
@@ -23,13 +25,13 @@ public class Client {
 		+"&serverTimezone=UTC";
 		final static String username = "server";
 		final static String password = "2468135790";
-	
-	
-		String client;
-		String user_password;
-		String device;
-		String type;
-		String register;
+		
+		
+		String client; //username of the client
+		String user_password; //password
+		String device; //type of device
+		String type; //what type of login this is
+		String register; //string used for registration
 		
 		//Constructor for client which parses LOGIN frame to get information. 
 		//May need to be changed at some point to work with registration frame.
@@ -88,7 +90,7 @@ public class Client {
 					ResultSet tmpRs = tmp.executeQuery();
 					
 					tmpRs.next();
-					if (tmpRs.getString(1).equals(temp[1]))
+					if (!tmpRs.getString(1).equals(temp[1]))
 						System.out.println("Passwords dont match");
 					
 			        //THE QUERY TO BE EXECUTED
@@ -218,12 +220,74 @@ public class Client {
 			boolean device_login() {
 				
 			}
+			*/
+		boolean device_register() {
+			//Clean this up eventually didn't want to mess with it until it was fully tested
 			
+			//registration variable.
+			String user;
+			String email;
+			String pass;
+			String []parse = register.split(Character.toString((char) 31));
+			
+			
+			//parse for registration below
+			//Frame = REGISTER(ASCII 31)UserName@DeviceName(ASCII 31)UserPassword(ASCII 31)UserEmail
+			user = parse[1].split("@")[0];
+			pass = parse[2];
+			email = parse[3];
+			System.out.println("User = " + user);
+			System.out.println("pass = " + pass);
+			System.out.println("email =" + email);
+			
+			
+			
+			//-----------------------------
+
+			try {
+			    //LOAD PROPER DRIVERS
+				Class.forName("com.mysql.jdbc.Driver");
+			    //MAKE A CONNECTION
+				Connection connectionconnection = DriverManager.getConnection(dbURL, username, password);
+				if(connectionconnection != null) {
+					
+			        //THE QUERY TO BE EXECUTED
+					//String userQuery = "SELECT * FROM Users WHERE UserName=? AND UserPassword=?;";
+			        //CREATE  A NEW STATEMENT
+					//ps.setString(1, temp[0]);
+					//ps.setString(2, temp[1]);
+					
+					PreparedStatement ps1 = connectionconnection.prepareStatement("Select UID from cse326.Users where UserName=?;");
+					ps1.setString(1, client);
+					PreparedStatement ps2 = connectionconnection.prepareStatement("insert into cse326.Devices (UID, DID, Device Name) values (?, ?, ?);");
+					ps2.setString(3, device);
+					if(ps2.executeUpdate() != 0) {
+						ps2.close();
+						return true;
+					}
+					else {
+						ps1.close();
+						ps2.close();
+						return false;
+					}
+			}
+			/*
+			 * Database interaction failed.
+			 */
+			else {
+				System.out.println("Failure!");
+				return false;
+			}
+			} catch (ClassNotFoundException e) {
+				throw new IllegalStateException("Cannot find the driver in the classpath!", e);
+			} catch (SQLException e) {
+					// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return false;
+		}
 			
 			//used to register a device/
-			boolean device_register() {
-				
-			}
-			*/
+
 		
 	}

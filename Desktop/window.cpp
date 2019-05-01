@@ -95,6 +95,7 @@ void window::setupLogReg(struct log_reg *ln){
         ln->register_confirm_button->setText(QApplication::translate("login_register", "Register", Q_NULLPTR));
 
         QObject::connect(ln->login_confirm_button, SIGNAL(clicked()), this, SLOT(login()));
+        QObject::connect(ln->register_confirm_button, SIGNAL(clicked()), this, SLOT(register_()));
 }
 
 
@@ -348,6 +349,21 @@ void window::readNotif(){
 
                 notifVec->push_back(n);
 
+                switch (se->combo_notif_pos->currentIndex()){
+                        case 0:
+                        n->coreWidget->move(0, 100);
+                        break;
+                        case 1:
+                        n->coreWidget->move(-100, 100);
+                        break;
+                        case 2:
+                        n->coreWidget->move(100, 100);
+                        break;
+                        case 3:
+                        n->coreWidget->move(100, -100);
+                        break;
+                }
+
                 n->coreWidget->show();
                 insertIntoTable();
         } else if (s.startsWith(notif, Qt::CaseSensitive)){
@@ -368,6 +384,21 @@ void window::readNotif(){
                 n->notification_data->setText(notifContent);
                 
                 notifVec->push_back(n);
+
+                switch (se->combo_notif_pos->currentIndex()){
+                        case 0:
+                        n->coreWidget->move(0, 100);
+                        break;
+                        case 1:
+                        n->coreWidget->move(-100, 100);
+                        break;
+                        case 2:
+                        n->coreWidget->move(100, 100);
+                        break;
+                        case 3:
+                        n->coreWidget->move(100, -100);
+                        break;
+                }
 
                 n->coreWidget->show();
                 insertIntoTable();
@@ -498,6 +529,9 @@ void window::insertIntoTable(){
 
         no->notif_table->insertRow(no->notif_table->rowCount());
 
-        no->notif_table->setCellWidget(no->notif_table->rowCount() - 1, 0, notifVec->back()->label_app);
-        no->notif_table->setCellWidget(no->notif_table->rowCount() - 1, 1, notifVec->back()->notification_data);
+        QLabel *lab = new QLabel(notifVec->back()->label_app->text());
+        QLabel *dat = new QLabel(notifVec->back()->notification_data->toPlainText());
+
+        no->notif_table->setCellWidget(no->notif_table->rowCount() - 1, 0, lab);
+        no->notif_table->setCellWidget(no->notif_table->rowCount() - 1, 1, dat);
 }

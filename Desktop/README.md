@@ -13,7 +13,7 @@ Compilation Instructions:
 <dd>
   <details>
     <summary>If cross-compiling from Linux to Windows</summary>
-    See accepted answer for <a href="https://stackoverflow.com/questions/14170590/building-qt-5-on-linux-for-windows/14170591#14170591">this</a> stackoverflow post.
+    See accepted answer for <a href="https://stackoverflow.com/questions/14170590/building-qt-5-on-linux-for-windows/14170591#14170591">this</a> stackoverflow post. Also see mxe.txt in Desktop directory.
   </details>
 </dd>
 <dt>MacOS</dt>

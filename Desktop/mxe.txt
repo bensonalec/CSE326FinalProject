@@ -1,0 +1,16 @@
+First clone mxe from git
+
+git clone https://github.com/mxe/mxe.git
+
+Make this part of mxe from mxe directory.
+
+
+make qt5 qtbase_CONFIGURE_OPTS=-debug-and-release MXE_TARGETS=x86_64-w64-mingw32.static
+
+may need to run make for .shared aswell depending on windows version.
+/
+export PATH=~/test/mxe/usr/bin:$PATH
+
+Then run PATH_TO_MXE/mxe/usr/bin/x86_64-w64-mingw32.static-qmake-qt5
+
+Run the makefile made by qmake.
